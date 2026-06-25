@@ -1,0 +1,99 @@
+---
+/**
+ * 页脚组件
+ * 展示项目信息、素材来源说明与版权信息
+ */
+---
+
+<footer class="footer" aria-label="页脚">
+  <div class="cloud-divider" aria-hidden="true"></div>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="footer-logo">非遗传承</span>
+      <p class="footer-desc">数字媒体应用课程设计作品</p>
+      <p class="footer-author">
+        <span>张宇祥</span>
+        <span class="divider">|</span>
+        <span>数字媒体技术231</span>
+        <span class="divider">|</span>
+        <span>2307435144</span>
+      </p>
+    </div>
+
+    <div class="footer-meta">
+      <p class="footer-source">素材来源：原创拍摄 / AI生成 / 公开网络资源</p>
+      <p class="footer-copyright">© 2026 数字媒体应用课程设计</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .cloud-divider {
+    opacity: 0.2;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+
+  .footer-logo {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--color-secondary);
+  }
+
+  .footer-desc {
+    font-size: 0.875rem;
+    color: rgba(245, 240, 232, 0.7);
+    margin-top: var(--spacing-xs);
+  }
+
+  .footer-author {
+    font-size: 0.8125rem;
+    color: rgba(245, 240, 232, 0.55);
+    margin-top: var(--spacing-sm);
+  }
+
+  .footer-author .divider {
+    margin: 0 var(--spacing-xs);
+    color: rgba(196, 163, 90, 0.6);
+  }
+
+  .footer-meta {
+    text-align: right;
+  }
+
+  .footer-source {
+    font-size: 0.8125rem;
+    color: rgba(245, 240, 232, 0.6);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .footer-copyright {
+    font-size: 0.8125rem;
+    color: rgba(245, 240, 232, 0.5);
+  }
+
+  /* 响应式 */
+  @media (max-width: 640px) {
+    .footer-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .footer-meta {
+      text-align: center;
+    }
+  }
+</style>

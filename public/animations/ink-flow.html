@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>水墨流动动画 - 非遗传承</title>
+  <style>
+    /**
+     * 水墨流动动画
+     * 用于非遗传承项目 Hero 区域背景
+     * 采用 Canvas 绘制多层水墨粒子 + 流动曲线，营造传统水墨晕染氛围
+     */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1A1A2E;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ink-canvas"></canvas>
+
+  <script>
+    /**
+     * 水墨流动动画主逻辑
+     * 
+     * 动画分层：
+     * 1. 底层：缓慢流动的大面积水墨晕染（低透明度，大面积）
+     * 2. 中层：中等大小的墨点粒子，模拟墨滴扩散
+     * 3. 顶层：细小的飞白粒子，模拟笔触飞溅
+     * 4. 装饰层：飘动的云纹线条
+     */
+
+    const canvas = document.getElementById('ink-canvas');
+    const ctx = canvas.getContext('2d');
+
+    /* 设备像素比适配，确保高清屏清晰 */
+    let dpr = window.devicePixelRatio || 1;
+    let width, height;
+
+    function resize() {
+      dpr = window.devicePixelRatio || 1;
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    /* ============================================
+     * 配色定义（与项目视觉系统一致）
+     * ============================================ */
+    const COLORS = {
+      /* 赭石色系 - 陶土 */
+      ochre: {
+        r: 139, g: 69, b: 19,
+        alpha: 0.08
+      },
+      /* 缃色系 - 丝绸 */
+      silk: {
+        r: 196, g: 163, b: 90,
+        alpha: 0.06
+      },
+      /* 朱砂色系 - 漆器红 */
+      cinnabar: {
+        r: 178, g: 34, b: 34,
+        alpha: 0.05
+      },
+      /* 墨色系 */
+      ink: {
+        r: 44, g: 44, b: 44,
+        alpha: 0.12
+      },
+      /* 青灰色系 */
+      grey: {
+        r: 109, g: 109, b: 109,
+        alpha: 0.06
+      }
+    };
+
+    /* 将颜色对象转为 rgba 字符串 */
+    function colorToRGBA(color, alphaMultiplier) {
+      const a = color.alpha * (alphaMultiplier || 1);
+      return `rgba(${color.r}, ${color.g}, ${color.b}, ${a})`;
+    }
+
+    /* ============================================
+     * 第一层：大面积水墨晕染（Perlin噪声驱动）
+     * ============================================ */
+
+    /**
+     * 简化版 Perlin 噪声
+     * 用于驱动水墨流动的方向和形态
+     */
+    class SimplexNoise {
+      constructor() {
+        this.perm = [];
+        for (let i = 0; i < 256; i++) this.perm[i] = i;
+        /* Fisher-Yates 洗牌 */
+        for (let i = 255; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [this.perm[i], this.perm[j]] = [this.perm[j], this.perm[i]];
+        }
+        /* 扩展为512长度避免越界 */
+        for (let i = 0; i < 256; i++) this.perm[256 + i] = this.perm[i];
+      }
+
+      /* 2D 噪声核心函数 */
+      noise2D(x, y) {
+        const fade = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+        const lerp = (a, b, t) => a + t * (b - a);
+        const grad = (hash, x, y) => {
+          const h = hash & 3;
+          const u = h < 2 ? x : y;
+          const v = h < 2 ? y : x;
+          return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+        };
+
+        const xi = Math.floor(x) & 255;
+        const yi = Math.floor(y) & 255;
+        const xf = x - Math.floor(x);
+        const yf = y - Math.floor(y);
+
+        const u = fade(xf);
+        const v = fade(yf);
+
+        const aa = this.perm[this.perm[xi] + yi];
+        const ab = this.perm[this.perm[xi] + yi + 1];
+        const ba = this.perm[this.perm[xi + 1] + yi];
+        const bb = this.perm[this.perm[xi + 1] + yi + 1];
+
+        return lerp(
+          lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u),
+          lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u),
+          v
+        );
+      }
+    }
+
+    const noise = new SimplexNoise();
+
+    /* 大面积水墨晕染粒子 */
+    class InkBlob {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        /* 基础半径，控制晕染面积 */
+        this.baseRadius = 80 + Math.random() * 200;
+        /* 当前半径，随时间脉动 */
+        this.radius = this.baseRadius;
+        /* 噪声偏移量，使每个粒子运动轨迹不同 */
+        this.noiseOffsetX = Math.random() * 1000;
+        this.noiseOffsetY = Math.random() * 1000;
+        /* 速度系数 */
+        this.speed = 0.15 + Math.random() * 0.3;
+        /* 随机选取配色 */
+        const colorKeys = Object.keys(COLORS);
+        this.color = COLORS[colorKeys[Math.floor(Math.random() * colorKeys.length)]];
+        /* 脉动相位 */
+        this.pulsePhase = Math.random() * Math.PI * 2;
+        this.pulseSpeed = 0.005 + Math.random() * 0.01;
+      }
+
+      update(time) {
+        /* 用噪声驱动位移，产生自然的流动感 */
+        const nx = noise.noise2D(this.noiseOffsetX + time * 0.0003, this.noiseOffsetY) * this.speed;
+        const ny = noise.noise2D(this.noiseOffsetX, this.noiseOffsetY + time * 0.0003) * this.speed;
+
+        this.x += nx;
+        this.y += ny;
+
+        /* 脉动效果：半径随时间缓慢变化 */
+        this.pulsePhase += this.pulseSpeed;
+        this.radius = this.baseRadius * (0.85 + 0.15 * Math.sin(this.pulsePhase));
+
+        /* 边界回绕 */
+        if (this.x < -this.radius) this.x = width + this.radius;
+        if (this.x > width + this.radius) this.x = -this.radius;
+        if (this.y < -this.radius) this.y = height + this.radius;
+        if (this.y > height + this.radius) this.y = -this.radius;
+      }
+
+      draw() {
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.radius
+        );
+        gradient.addColorStop(0, colorToRGBA(this.color, 1.2));
+        gradient.addColorStop(0.4, colorToRGBA(this.color, 0.6));
+        gradient.addColorStop(1, colorToRGBA(this.color, 0));
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    /* ============================================
+     * 第二层：墨滴粒子（中等大小，模拟墨滴扩散）
+     * ============================================ */
+    class InkDrop {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = 3 + Math.random() * 12;
+        this.noiseOffsetX = Math.random() * 1000;
+        this.noiseOffsetY = Math.random() * 1000;
+        this.speed = 0.3 + Math.random() * 0.5;
+        this.life = 0;
+        this.maxLife = 300 + Math.random() * 400;
+        const colorKeys = Object.keys(COLORS);
+        this.color = COLORS[colorKeys[Math.floor(Math.random() * colorKeys.length)]];
+      }
+
+      update(time) {
+        const nx = noise.noise2D(this.noiseOffsetX + time * 0.0005, this.noiseOffsetY) * this.speed;
+        const ny = noise.noise2D(this.noiseOffsetX, this.noiseOffsetY + time * 0.0005) * this.speed;
+
+        this.x += nx;
+        this.y += ny;
+        this.life++;
+
+        if (this.life > this.maxLife) this.reset();
+        /* 边界回绕 */
+        if (this.x < -20) this.x = width + 20;
+        if (this.x > width + 20) this.x = -20;
+        if (this.y < -20) this.y = height + 20;
+        if (this.y > height + 20) this.y = -20;
+      }
+
+      draw() {
+        /* 生命周期淡入淡出 */
+        const lifeRatio = this.life / this.maxLife;
+        const alphaMultiplier = lifeRatio < 0.1
+          ? lifeRatio / 0.1
+          : lifeRatio > 0.8
+            ? (1 - lifeRatio) / 0.2
+            : 1;
+
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.radius
+        );
+        gradient.addColorStop(0, colorToRGBA(this.color, 2.5 * alphaMultiplier));
+        gradient.addColorStop(1, colorToRGBA(this.color, 0));
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    /* ============================================
+     * 第三层：飞白粒子（细小笔触飞溅）
+     * ============================================ */
+    class SplashParticle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = 0.5 + Math.random() * 2;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.life = 0;
+        this.maxLife = 200 + Math.random() * 300;
+        this.color = COLORS.ink;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life++;
+        if (this.life > this.maxLife) this.reset();
+        if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) this.reset();
+      }
+
+      draw() {
+        const lifeRatio = this.life / this.maxLife;
+        const alpha = lifeRatio < 0.1
+          ? lifeRatio / 0.1
+          : lifeRatio > 0.7
+            ? (1 - lifeRatio) / 0.3
+            : 1;
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = colorToRGBA(this.color, 3 * alpha);
+        ctx.fill();
+      }
+    }
+
+    /* ============================================
+     * 第四层：云纹流动线条
+     * ============================================ */
+    class CloudLine {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.startX = -100;
+        this.y = Math.random() * height;
+        this.amplitude = 20 + Math.random() * 40;
+        this.wavelength = 100 + Math.random() * 200;
+        this.speed = 0.3 + Math.random() * 0.5;
+        this.length = 200 + Math.random() * 400;
+        this.noiseOffset = Math.random() * 1000;
+        this.color = COLORS.silk;
+        this.lineWidth = 0.5 + Math.random() * 1.5;
+      }
+
+      update(time) {
+        this.startX += this.speed;
+        /* 超出右边界后从左边重新进入 */
+        if (this.startX > width + 100) {
+          this.startX = -this.length - 100;
+          this.y = Math.random() * height;
+        }
+      }
+
+      draw(time) {
+        ctx.beginPath();
+        ctx.strokeStyle = colorToRGBA(this.color, 1.5);
+        ctx.lineWidth = this.lineWidth;
+        ctx.lineCap = 'round';
+
+        const steps = 60;
+        const stepLength = this.length / steps;
+
+        for (let i = 0; i <= steps; i++) {
+          const x = this.startX + i * stepLength;
+          /* 正弦波 + 噪声偏移，产生自然的云纹曲线 */
+          const noiseVal = noise.noise2D(this.noiseOffset + i * 0.05, time * 0.0003);
+          const y = this.y + Math.sin((x / this.wavelength) + time * 0.001) * this.amplitude + noiseVal * 15;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+
+        ctx.stroke();
+      }
+    }
+
+    /* ============================================
+     * 粒子池初始化
+     * ============================================ */
+    const inkBlobs = [];
+    const inkDrops = [];
+    const splashParticles = [];
+    const cloudLines = [];
+
+    /* 大面积晕染：6-8个 */
+    for (let i = 0; i < 7; i++) inkBlobs.push(new InkBlob());
+    /* 墨滴：20-30个 */
+    for (let i = 0; i < 25; i++) inkDrops.push(new InkDrop());
+    /* 飞白：40-60个 */
+    for (let i = 0; i < 50; i++) splashParticles.push(new SplashParticle());
+    /* 云纹线条：4-6条 */
+    for (let i = 0; i < 5; i++) cloudLines.push(new CloudLine());
+
+    /* ============================================
+     * 动画主循环
+     * ============================================ */
+    let animationId = null;
+
+    function animate(time) {
+      /* 清除画布，使用半透明背景实现拖尾效果 */
+      ctx.fillStyle = 'rgba(26, 26, 46, 0.15)';
+      ctx.fillRect(0, 0, width, height);
+
+      /* 按层级绘制：底层 → 中层 → 顶层 → 装饰层 */
+      for (const blob of inkBlobs) {
+        blob.update(time);
+        blob.draw();
+      }
+
+      for (const drop of inkDrops) {
+        drop.update(time);
+        drop.draw();
+      }
+
+      for (const particle of splashParticles) {
+        particle.update();
+        particle.draw();
+      }
+
+      for (const line of cloudLines) {
+        line.update(time);
+        line.draw(time);
+      }
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    /* 启动动画 */
+    animate(0);
+
+    /* 页面不可见时暂停动画，节省性能 */
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationId);
+      } else {
+        animate(performance.now());
+      }
+    });
+  </script>
+</body>
+</html>

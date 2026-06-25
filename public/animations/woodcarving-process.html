@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>木雕雕刻过程动画 - 非遗传承</title>
+  <style>
+    /**
+     * 木雕雕刻过程动画
+     * 展示选材 → 构图 → 粗雕 → 细雕 → 打磨 五道工序
+     * 以木屑飞溅、刀痕累积的动态形式呈现
+     */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1A1A2E;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 木纹背景画布 */
+    #wood-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .process-info {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      color: #F5F0E8;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .process-step {
+      font-size: 14px;
+      letter-spacing: 8px;
+      color: #C4A35A;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .process-title {
+      font-size: 42px;
+      font-weight: 700;
+      color: #F5F0E8;
+      text-shadow: 0 0 20px rgba(196, 163, 90, 0.6);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease 0.2s forwards;
+    }
+
+    .process-desc {
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(245, 240, 232, 0.75);
+      opacity: 0;
+      animation: fadeIn 0.8s ease 0.4s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .craft-stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 400px;
+      z-index: 5;
+    }
+
+    #carving-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(245, 240, 232, 0.2);
+      border: 1px solid rgba(196, 163, 90, 0.4);
+      transition: all 0.4s ease;
+    }
+
+    .progress-dot.active {
+      background: #C4A35A;
+      box-shadow: 0 0 12px rgba(196, 163, 90, 0.8);
+      transform: scale(1.3);
+    }
+
+    .progress-dot.done {
+      background: rgba(196, 163, 90, 0.5);
+    }
+
+    .step-labels {
+      position: absolute;
+      bottom: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 24px;
+      z-index: 10;
+      font-size: 13px;
+      color: rgba(245, 240, 232, 0.6);
+    }
+
+    .step-label.active {
+      color: #C4A35A;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <canvas id="wood-canvas"></canvas>
+
+    <div class="process-info">
+      <div class="process-step" id="step-num">工序 一</div>
+      <h2 class="process-title" id="step-title">选材</h2>
+      <p class="process-desc" id="step-desc">精选樟木黄杨，纹理通直，自然阴干，待木性稳定方可下刀</p>
+    </div>
+
+    <div class="craft-stage">
+      <canvas id="carving-canvas" width="1000" height="800"></canvas>
+    </div>
+
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="step-labels" id="step-labels"></div>
+  </div>
+
+  <script>
+    /**
+     * 木雕雕刻过程动画
+     * 
+     * 五道工序循环演示：
+     * 1. 选材 - 木料显现，纹理展开
+     * 2. 构图 - 墨线勾勒图案
+     * 3. 粗雕 - 大刀阔斧，凿出雏形
+     * 4. 细雕 - 精雕细琢，纹理显现
+     * 5. 打磨 - 砂磨抛光，温润如玉
+     */
+
+    const steps = [
+      {
+        num: '工序 一',
+        title: '选材',
+        desc: '精选樟木黄杨，纹理通直，自然阴干，待木性稳定方可下刀',
+        duration: 4000
+      },
+      {
+        num: '工序 二',
+        title: '构图',
+        desc: '以墨为笔，在木料表面勾勒图案轮廓，定下雕刻章法',
+        duration: 4500
+      },
+      {
+        num: '工序 三',
+        title: '粗雕',
+        desc: '打坯粗凿，大刀阔斧去除余料，凿出物象大体雏形',
+        duration: 5000
+      },
+      {
+        num: '工序 四',
+        title: '细雕',
+        desc: '精雕细琢，刀游毫芒，衣纹毛发纤毫毕现',
+        duration: 5000
+      },
+      {
+        num: '工序 五',
+        title: '打磨',
+        desc: '砂磨抛光，由粗到细，木表温润如玉，纹理清晰可辨',
+        duration: 4000
+      }
+    ];
+
+    const progressBar = document.getElementById('progress-bar');
+    const stepLabels = document.getElementById('step-labels');
+    steps.forEach(step => {
+      const dot = document.createElement('div');
+      dot.className = 'progress-dot';
+      progressBar.appendChild(dot);
+
+      const label = document.createElement('div');
+      label.className = 'step-label';
+      label.textContent = step.title;
+      stepLabels.appendChild(label);
+    });
+
+    /* ============================================
+     * 背景画布：木纹粒子
+     * ============================================ */
+    const woodCanvas = document.getElementById('wood-canvas');
+    const woodCtx = woodCanvas.getContext('2d');
+    let woodDpr = window.devicePixelRatio || 1;
+
+    function resizeWood() {
+      woodDpr = window.devicePixelRatio || 1;
+      woodCanvas.width = window.innerWidth * woodDpr;
+      woodCanvas.height = window.innerHeight * woodDpr;
+      woodCtx.scale(woodDpr, woodDpr);
+    }
+    resizeWood();
+    window.addEventListener('resize', resizeWood);
+
+    /* 木屑粒子 */
+    class WoodChip {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+        this.y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = -2 - Math.random() * 3;
+        this.gravity = 0.1;
+        this.radius = 1 + Math.random() * 2;
+        this.life = 0;
+        this.maxLife = 60 + Math.random() * 40;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.2;
+        this.color = `hsl(${30 + Math.random() * 15}, 50%, ${40 + Math.random() * 20}%)`;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.rotation += this.rotSpeed;
+        this.life++;
+        if (this.life > this.maxLife) this.active = false;
+      }
+      draw() {
+        const alpha = 1 - this.life / this.maxLife;
+        woodCtx.save();
+        woodCtx.translate(this.x, this.y);
+        woodCtx.rotate(this.rotation);
+        woodCtx.fillStyle = this.color;
+        woodCtx.globalAlpha = alpha;
+        woodCtx.fillRect(-this.radius, -this.radius * 0.4, this.radius * 2, this.radius * 0.8);
+        woodCtx.restore();
+        woodCtx.globalAlpha = 1;
+      }
+    }
+
+    const woodChips = [];
+    let chipSpawnTimer = 0;
+
+    /* ============================================
+     * 雕刻画布
+     * ============================================ */
+    const carveCanvas = document.getElementById('carving-canvas');
+    const cCtx = carveCanvas.getContext('2d');
+    const CW = carveCanvas.width;
+    const CH = carveCanvas.height;
+
+    let currentStep = 0;
+    let stepStartTime = 0;
+
+    /* 持久化的雕刻痕迹 */
+    let carvingMarks = [];
+    let inkLines = [];
+
+    /* 绘制木料底板 */
+    function drawWoodBase() {
+      /* 木料矩形 */
+      const margin = 80;
+      const x = margin;
+      const y = margin;
+      const w = CW - margin * 2;
+      const h = CH - margin * 2;
+
+      /* 木纹底色 */
+      const grad = cCtx.createLinearGradient(0, 0, 0, CH);
+      grad.addColorStop(0, '#8B5A2B');
+      grad.addColorStop(0.5, '#A0673A');
+      grad.addColorStop(1, '#8B5A2B');
+      cCtx.fillStyle = grad;
+      cCtx.fillRect(x, y, w, h);
+
+      /* 木纹纹理 */
+      cCtx.strokeStyle = 'rgba(80, 50, 20, 0.3)';
+      cCtx.lineWidth = 1;
+      for (let i = 0; i < 30; i++) {
+        const yPos = y + (i / 30) * h + Math.sin(i) * 5;
+        cCtx.beginPath();
+        cCtx.moveTo(x, yPos);
+        /* 波浪线模拟木纹 */
+        for (let xPos = x; xPos <= x + w; xPos += 10) {
+          cCtx.lineTo(xPos, yPos + Math.sin(xPos * 0.02 + i) * 3);
+        }
+        cCtx.stroke();
+      }
+
+      /* 木结 */
+      cCtx.fillStyle = 'rgba(60, 35, 15, 0.5)';
+      cCtx.beginPath();
+      cCtx.arc(x + w * 0.3, y + h * 0.4, 8, 0, Math.PI * 2);
+      cCtx.fill();
+      cCtx.beginPath();
+      cCtx.arc(x + w * 0.7, y + h * 0.6, 6, 0, Math.PI * 2);
+      cCtx.fill();
+
+      /* 边框 */
+      cCtx.strokeStyle = 'rgba(196, 163, 90, 0.4)';
+      cCtx.lineWidth = 2;
+      cCtx.strokeRect(x, y, w, h);
+    }
+
+    /* 绘制选材阶段：木料从模糊到清晰 */
+    function drawSelecting(t) {
+      const progress = t / steps[0].duration;
+      cCtx.save();
+      cCtx.globalAlpha = progress;
+      drawWoodBase();
+      cCtx.restore();
+
+      /* 光泽扫过 */
+      if (progress > 0.5) {
+        const shineX = (progress - 0.5) * 2 * CW;
+        const grad = cCtx.createLinearGradient(shineX - 100, 0, shineX + 100, 0);
+        grad.addColorStop(0, 'rgba(255, 220, 150, 0)');
+        grad.addColorStop(0.5, 'rgba(255, 220, 150, 0.3)');
+        grad.addColorStop(1, 'rgba(255, 220, 150, 0)');
+        cCtx.fillStyle = grad;
+        cCtx.fillRect(0, 0, CW, CH);
+      }
+    }
+
+    /* 绘制构图阶段：墨线勾勒 */
+    function drawDrafting(t) {
+      const progress = t / steps[1].duration;
+      drawWoodBase();
+
+      /* 墨线图案：莲花 */
+      const cx = CW / 2;
+      const cy = CH / 2;
+      const points = [];
+      /* 莲花花瓣轮廓 */
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const petalPoints = 10;
+        for (let j = 0; j <= petalPoints; j++) {
+          const t2 = j / petalPoints;
+          const r = 50 + Math.sin(t2 * Math.PI) * 80;
+          const a = angle + (t2 - 0.5) * 0.4;
+          points.push({
+            x: cx + Math.cos(a) * r,
+            y: cy + Math.sin(a) * r
+          });
+        }
+      }
+
+      /* 中心圆 */
+      for (let i = 0; i <= 30; i++) {
+        const a = (i / 30) * Math.PI * 2;
+        points.push({
+          x: cx + Math.cos(a) * 30,
+          y: cy + Math.sin(a) * 30
+        });
+      }
+
+      const currentIdx = Math.floor(progress * points.length);
+
+      /* 绘制墨线 */
+      cCtx.strokeStyle = 'rgba(40, 30, 20, 0.8)';
+      cCtx.lineWidth = 2;
+      cCtx.lineCap = 'round';
+      cCtx.beginPath();
+      if (points.length > 0) {
+        cCtx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < Math.min(currentIdx, points.length); i++) {
+          cCtx.lineTo(points[i].x, points[i].y);
+        }
+        cCtx.stroke();
+      }
+
+      /* 毛笔图标 */
+      if (currentIdx < points.length) {
+        const p = points[Math.min(currentIdx, points.length - 1)];
+        cCtx.save();
+        cCtx.translate(p.x + 20, p.y - 20);
+        cCtx.rotate(Math.PI / 4);
+        cCtx.fillStyle = '#8B4513';
+        cCtx.fillRect(0, -3, 40, 6);
+        cCtx.fillStyle = '#333';
+        cCtx.beginPath();
+        cCtx.moveTo(40, -3);
+        cCtx.lineTo(50, 0);
+        cCtx.lineTo(40, 3);
+        cCtx.closePath();
+        cCtx.fill();
+        cCtx.restore();
+      }
+    }
+
+    /* 绘制粗雕阶段：凿出雏形 */
+    function drawRoughCarving(t) {
+      const progress = t / steps[2].duration;
+      drawWoodBase();
+
+      /* 粗犷的凿痕 */
+      const cx = CW / 2;
+      const cy = CH / 2;
+      const marks = 40;
+      const currentMark = Math.floor(progress * marks);
+
+      for (let i = 0; i < currentMark; i++) {
+        const angle = (i / marks) * Math.PI * 2;
+        const r = 50 + Math.random() * 80;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        const len = 15 + Math.random() * 20;
+        const dir = angle + Math.PI + (Math.random() - 0.5) * 0.5;
+
+        /* 凿痕 */
+        cCtx.beginPath();
+        cCtx.moveTo(x, y);
+        cCtx.lineTo(x + Math.cos(dir) * len, y + Math.sin(dir) * len);
+        cCtx.strokeStyle = 'rgba(40, 25, 10, 0.6)';
+        cCtx.lineWidth = 4 + Math.random() * 3;
+        cCtx.lineCap = 'round';
+        cCtx.stroke();
+
+        /* 凿痕高光 */
+        cCtx.beginPath();
+        cCtx.moveTo(x, y);
+        cCtx.lineTo(x + Math.cos(dir) * len * 0.7, y + Math.sin(dir) * len * 0.7);
+        cCtx.strokeStyle = 'rgba(180, 130, 80, 0.4)';
+        cCtx.lineWidth = 1;
+        cCtx.stroke();
+      }
+
+      /* 中心粗雕形状 */
+      cCtx.save();
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, 40 + progress * 20, 0, Math.PI * 2);
+      cCtx.fillStyle = 'rgba(120, 80, 40, 0.6)';
+      cCtx.fill();
+      cCtx.strokeStyle = 'rgba(60, 40, 20, 0.8)';
+      cCtx.lineWidth = 3;
+      cCtx.stroke();
+      cCtx.restore();
+
+      /* 凿子图标 */
+      const toolAngle = (t * 0.002) % (Math.PI * 2);
+      const toolR = 100;
+      const toolX = cx + Math.cos(toolAngle) * toolR;
+      const toolY = cy + Math.sin(toolAngle) * toolR;
+      cCtx.save();
+      cCtx.translate(toolX, toolY);
+      cCtx.rotate(toolAngle + Math.PI);
+      cCtx.fillStyle = '#C4A35A';
+      cCtx.fillRect(0, -4, 50, 8);
+      cCtx.fillStyle = '#5C4326';
+      cCtx.fillRect(50, -8, 25, 16);
+      cCtx.restore();
+    }
+
+    /* 绘制细雕阶段：精细纹理 */
+    function drawFineCarving(t) {
+      const progress = t / steps[3].duration;
+      drawWoodBase();
+
+      const cx = CW / 2;
+      const cy = CH / 2;
+
+      /* 莲花精细轮廓 */
+      cCtx.save();
+      cCtx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const petalPoints = 20;
+        for (let j = 0; j <= petalPoints; j++) {
+          const t2 = j / petalPoints;
+          const r = 50 + Math.sin(t2 * Math.PI) * 80;
+          const a = angle + (t2 - 0.5) * 0.4;
+          const x = cx + Math.cos(a) * r;
+          const y = cy + Math.sin(a) * r;
+          if (j === 0 && i > 0) cCtx.moveTo(x, y);
+          else cCtx.lineTo(x, y);
+        }
+      }
+      cCtx.closePath();
+      cCtx.strokeStyle = 'rgba(40, 25, 10, 0.9)';
+      cCtx.lineWidth = 2;
+      cCtx.stroke();
+      cCtx.restore();
+
+      /* 细雕纹理：花瓣脉络 */
+      const veins = 80;
+      const currentVein = Math.floor(progress * veins);
+
+      for (let i = 0; i < currentVein; i++) {
+        const angle = (i / 8) * Math.PI * 2 + (i % 8) * 0.05;
+        const t2 = (i % 10) / 10;
+        const r1 = 50 + Math.sin(t2 * Math.PI) * 80;
+        const r2 = 50 + Math.sin((t2 + 0.1) * Math.PI) * 80;
+        const a1 = angle + (t2 - 0.5) * 0.4;
+        const a2 = angle + (t2 + 0.1 - 0.5) * 0.4;
+
+        cCtx.beginPath();
+        cCtx.moveTo(cx + Math.cos(a1) * r1, cy + Math.sin(a1) * r1);
+        cCtx.lineTo(cx + Math.cos(a2) * r2, cy + Math.sin(a2) * r2);
+        cCtx.strokeStyle = 'rgba(60, 40, 20, 0.5)';
+        cCtx.lineWidth = 1;
+        cCtx.stroke();
+      }
+
+      /* 中心精细圆 */
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, 30, 0, Math.PI * 2);
+      cCtx.fillStyle = 'rgba(180, 130, 80, 0.7)';
+      cCtx.fill();
+      cCtx.strokeStyle = 'rgba(40, 25, 10, 0.9)';
+      cCtx.lineWidth = 2;
+      cCtx.stroke();
+
+      /* 莲子 */
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const x = cx + Math.cos(a) * 15;
+        const y = cy + Math.sin(a) * 15;
+        cCtx.beginPath();
+        cCtx.arc(x, y, 3, 0, Math.PI * 2);
+        cCtx.fillStyle = 'rgba(60, 40, 20, 0.8)';
+        cCtx.fill();
+      }
+
+      /* 雕刻刀图标 */
+      const toolAngle = (t * 0.003) % (Math.PI * 2);
+      const toolR = 130;
+      const toolX = cx + Math.cos(toolAngle) * toolR;
+      const toolY = cy + Math.sin(toolAngle) * toolR;
+      cCtx.save();
+      cCtx.translate(toolX, toolY);
+      cCtx.rotate(toolAngle + Math.PI);
+      cCtx.fillStyle = '#C4A35A';
+      cCtx.fillRect(0, -2, 40, 4);
+      cCtx.fillStyle = '#333';
+      cCtx.beginPath();
+      cCtx.moveTo(40, -3);
+      cCtx.lineTo(48, 0);
+      cCtx.lineTo(40, 3);
+      cCtx.closePath();
+      cCtx.fill();
+      cCtx.restore();
+    }
+
+    /* 绘制打磨阶段：光泽显现 */
+    function drawPolishing(t) {
+      const progress = t / steps[4].duration;
+      drawWoodBase();
+
+      const cx = CW / 2;
+      const cy = CH / 2;
+
+      /* 完整的莲花雕刻 */
+      cCtx.save();
+      cCtx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const petalPoints = 20;
+        for (let j = 0; j <= petalPoints; j++) {
+          const t2 = j / petalPoints;
+          const r = 50 + Math.sin(t2 * Math.PI) * 80;
+          const a = angle + (t2 - 0.5) * 0.4;
+          const x = cx + Math.cos(a) * r;
+          const y = cy + Math.sin(a) * r;
+          if (j === 0 && i > 0) cCtx.moveTo(x, y);
+          else cCtx.lineTo(x, y);
+        }
+      }
+      cCtx.closePath();
+      cCtx.fillStyle = `rgba(180, 130, 80, ${0.6 + progress * 0.3})`;
+      cCtx.fill();
+      cCtx.strokeStyle = 'rgba(40, 25, 10, 0.9)';
+      cCtx.lineWidth = 2;
+      cCtx.stroke();
+      cCtx.restore();
+
+      /* 中心 */
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, 30, 0, Math.PI * 2);
+      cCtx.fillStyle = `rgba(200, 150, 100, ${0.7 + progress * 0.3})`;
+      cCtx.fill();
+      cCtx.strokeStyle = 'rgba(40, 25, 10, 0.9)';
+      cCtx.lineWidth = 2;
+      cCtx.stroke();
+
+      /* 莲子 */
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const x = cx + Math.cos(a) * 15;
+        const y = cy + Math.sin(a) * 15;
+        cCtx.beginPath();
+        cCtx.arc(x, y, 3, 0, Math.PI * 2);
+        cCtx.fillStyle = 'rgba(60, 40, 20, 0.8)';
+        cCtx.fill();
+      }
+
+      /* 打磨光泽：扫过的高光 */
+      const shineX = progress * CW;
+      const grad = cCtx.createLinearGradient(shineX - 80, 0, shineX + 80, 0);
+      grad.addColorStop(0, 'rgba(255, 240, 200, 0)');
+      grad.addColorStop(0.5, `rgba(255, 240, 200, ${0.4 * progress})`);
+      grad.addColorStop(1, 'rgba(255, 240, 200, 0)');
+      cCtx.fillStyle = grad;
+      cCtx.fillRect(0, 0, CW, CH);
+
+      /* 整体光泽增强 */
+      cCtx.save();
+      cCtx.globalCompositeOperation = 'overlay';
+      cCtx.fillStyle = `rgba(255, 220, 150, ${progress * 0.2})`;
+      cCtx.fillRect(0, 0, CW, CH);
+      cCtx.restore();
+    }
+
+    /* 更新工序信息 */
+    function updateStepInfo(idx) {
+      const step = steps[idx];
+      const numEl = document.getElementById('step-num');
+      const titleEl = document.getElementById('step-title');
+      const descEl = document.getElementById('step-desc');
+
+      [numEl, titleEl, descEl].forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = '';
+      });
+
+      numEl.textContent = step.num;
+      titleEl.textContent = step.title;
+      descEl.textContent = step.desc;
+
+      const dots = progressBar.querySelectorAll('.progress-dot');
+      const labels = stepLabels.querySelectorAll('.step-label');
+      dots.forEach((dot, i) => {
+        dot.classList.remove('active', 'done');
+        if (i < idx) dot.classList.add('done');
+        if (i === idx) dot.classList.add('active');
+      });
+      labels.forEach((label, i) => {
+        label.classList.toggle('active', i === idx);
+      });
+    }
+
+    function animate(timestamp) {
+      if (!stepStartTime) stepStartTime = timestamp;
+      const elapsed = timestamp - stepStartTime;
+
+      woodCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      cCtx.clearRect(0, 0, CW, CH);
+
+      /* 木屑粒子（粗雕和细雕阶段产生） */
+      if (currentStep === 2 || currentStep === 3) {
+        chipSpawnTimer++;
+        if (chipSpawnTimer > 3) {
+          chipSpawnTimer = 0;
+          woodChips.push(new WoodChip());
+        }
+      }
+
+      /* 更新和绘制木屑 */
+      for (let i = woodChips.length - 1; i >= 0; i--) {
+        woodChips[i].update();
+        woodChips[i].draw();
+        if (woodChips[i].life > woodChips[i].maxLife) {
+          woodChips.splice(i, 1);
+        }
+      }
+
+      /* 绘制当前工序 */
+      if (currentStep === 0) drawSelecting(elapsed);
+      else if (currentStep === 1) drawDrafting(elapsed);
+      else if (currentStep === 2) drawRoughCarving(elapsed);
+      else if (currentStep === 3) drawFineCarving(elapsed);
+      else if (currentStep === 4) drawPolishing(elapsed);
+
+      if (elapsed > steps[currentStep].duration) {
+        currentStep = (currentStep + 1) % steps.length;
+        stepStartTime = timestamp;
+        updateStepInfo(currentStep);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    updateStepInfo(0);
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

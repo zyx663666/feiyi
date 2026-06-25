@@ -1,0 +1,1590 @@
+---
+/**
+ * 陶瓷拉坯模拟器
+ * 基于 Canvas 2D 的交互式非遗技艺模拟游戏
+ * 玩家通过鼠标/触控拖动来塑形陶坯，目标是复刻参考器型
+ */
+import Layout from "../components/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="陶瓷拉坯模拟器 - 非遗传承">
+  <Navigation />
+
+  <main class="game-main">
+    <!-- 顶部标题栏 -->
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/" class="back-btn" aria-label="返回首页">←</a>
+        <div class="title-area">
+          <h1 class="game-title">陶瓷拉坯模拟器</h1>
+          <p class="game-subtitle">指尖塑泥 · 复刻千年器型</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <nav class="game-tabs">
+          <a href="/game" class="tab-btn active">拉坯模拟器</a>
+          <a href="/game/embroidery" class="tab-btn">刺绣挑战</a>
+          <a href="/game/glaze" class="tab-btn">釉色调配</a>
+        </nav>
+        <button class="header-btn" id="reset-btn" title="重置">↻</button>
+      </div>
+    </header>
+
+    <!-- 三栏主体 -->
+    <div class="game-body">
+      <!-- 左栏：参考器型 -->
+      <aside class="panel reference-panel">
+        <h2 class="panel-title">参考器型</h2>
+        <div class="reference-canvas-wrap">
+          <canvas id="reference-canvas" width="200" height="460"></canvas>
+        </div>
+        <div class="reference-info">
+          <p class="ref-name" id="ref-name">碗</p>
+          <p class="ref-desc" id="ref-desc">敞口收底，源于新石器时代</p>
+        </div>
+        <div class="ref-labels" id="ref-labels">
+          <div class="ref-label" data-part="口部"><span class="dot"></span>口部</div>
+          <div class="ref-label" data-part="腹部"><span class="dot"></span>腹部</div>
+          <div class="ref-label" data-part="底部"><span class="dot"></span>底部</div>
+        </div>
+      </aside>
+
+      <!-- 中栏：操作画布 -->
+      <section class="panel canvas-panel">
+        <div class="canvas-wrap">
+          <canvas id="game-canvas" width="400" height="520"></canvas>
+          <div class="canvas-hint" id="canvas-hint">
+            <span class="hint-icon">✋</span>
+            <span>上下拖动塑形 · 左右控制力度</span>
+          </div>
+        </div>
+        <div class="canvas-controls">
+          <div class="control-group">
+            <label class="control-label">力度</label>
+            <input type="range" id="strength-slider" min="1" max="10" value="5" class="slider" />
+            <span class="control-value" id="strength-value">5</span>
+          </div>
+          <button class="action-btn primary" id="finish-btn">完成塑形</button>
+        </div>
+      </section>
+
+      <!-- 右栏：评分系统 -->
+      <aside class="panel score-panel">
+        <h2 class="panel-title">完成度评分</h2>
+        <div class="score-ring-wrap">
+          <svg class="score-ring" width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="8" />
+            <circle cx="70" cy="70" r="60" fill="none" stroke="var(--clay)" stroke-width="8"
+              stroke-linecap="round" id="score-ring-circle"
+              stroke-dasharray="377" stroke-dashoffset="377"
+              transform="rotate(-90 70 70)" />
+          </svg>
+          <div class="score-text">
+            <span class="score-num" id="score-num">0</span>
+            <span class="score-unit">/100</span>
+          </div>
+        </div>
+        <div class="score-breakdown">
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">轮廓匹配</span>
+              <span class="score-item-val" id="match-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="match-bar" style="width:0%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">比例协调</span>
+              <span class="score-item-val" id="prop-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="prop-bar" style="width:0%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">表面平滑</span>
+              <span class="score-item-val" id="smooth-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="smooth-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="score-tip" id="score-tip">
+          <span class="tip-icon">💡</span>
+          <span class="tip-text">开始塑形，系统将实时评分</span>
+        </div>
+        <div class="help-inline">
+          <h3 class="help-title">玩法说明</h3>
+          <ol class="help-list">
+            <li>底部选择目标器型（碗、梅瓶、罐等）</li>
+            <li>在画布上 <strong>上下拖动</strong> 塑形陶坯</li>
+            <li>向上拖 <strong>变细</strong>，向下拖 <strong>变粗</strong></li>
+            <li>调节 <strong>力度滑块</strong> 控制塑形强度</li>
+            <li>左侧虚线为目标轮廓，尽量吻合</li>
+            <li>点击 <strong>完成塑形</strong> 查看评分</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <!-- 底部器型选择 -->
+    <footer class="shape-selector">
+      <div class="shape-card active" data-shape="bowl">
+        <canvas class="shape-thumb" width="60" height="60" data-shape="bowl"></canvas>
+        <span class="shape-name">碗</span>
+      </div>
+      <div class="shape-card" data-shape="vase">
+        <canvas class="shape-thumb" width="60" height="60" data-shape="vase"></canvas>
+        <span class="shape-name">梅瓶</span>
+      </div>
+      <div class="shape-card" data-shape="jar">
+        <canvas class="shape-thumb" width="60" height="60" data-shape="jar"></canvas>
+        <span class="shape-name">罐</span>
+      </div>
+      <div class="shape-card" data-shape="goblet">
+        <canvas class="shape-thumb" width="60" height="60" data-shape="goblet"></canvas>
+        <span class="shape-name">高足杯</span>
+      </div>
+      <div class="shape-card" data-shape="flowerVase">
+        <canvas class="shape-thumb" width="60" height="60" data-shape="flowerVase"></canvas>
+        <span class="shape-name">花瓶</span>
+      </div>
+    </footer>
+
+    <!-- 完成弹窗 -->
+    <div class="modal-overlay" id="result-modal">
+      <div class="modal-content result-modal">
+        <button class="modal-close" id="result-close">×</button>
+        <h2 class="modal-title">塑形完成</h2>
+        <div class="result-score-ring">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="10" />
+            <circle cx="80" cy="80" r="68" fill="none" stroke="var(--clay)" stroke-width="10"
+              stroke-linecap="round" id="result-ring"
+              stroke-dasharray="427" stroke-dashoffset="427"
+              transform="rotate(-90 80 80)" />
+          </svg>
+          <div class="result-score-text">
+            <span class="result-num" id="result-num">0</span>
+            <span class="result-grade" id="result-grade"></span>
+          </div>
+        </div>
+        <p class="result-comment" id="result-comment"></p>
+        <div class="result-actions">
+          <button class="action-btn" id="result-retry">再试一次</button>
+          <button class="action-btn primary" id="result-next">换一个器型</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* ===== 主题变量 ===== */
+  :root {
+    --clay: #8B4513;
+    --clay-light: #C4A35A;
+    --kiln: #c4452a;
+    --paper: #f4f1ea;
+    --ink: #2c2418;
+    --paper-dark: #e8e0d0;
+    --gray: #7a7268;
+  }
+
+  /* ===== 主容器 ===== */
+  .game-main {
+    min-height: 100vh;
+    padding-top: var(--nav-height);
+    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+  }
+
+  /* ===== 顶部标题栏 ===== */
+  .game-header {
+    width: 100%;
+    max-width: 1400px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    color: var(--clay);
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+    background: var(--clay);
+    color: white;
+  }
+
+  .game-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.8rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .game-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gray);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover {
+    color: var(--clay);
+  }
+
+  .tab-btn.active {
+    background: var(--clay);
+    color: white;
+  }
+
+  .header-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    color: var(--clay);
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .header-btn:hover {
+    background: var(--clay);
+    color: white;
+  }
+
+  /* ===== 三栏主体 ===== */
+  .game-body {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px;
+    max-width: 1400px;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--paper-dark);
+  }
+
+  /* ===== 左栏：参考器型 ===== */
+  .reference-panel {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .reference-canvas-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  #reference-canvas {
+    background: #faf8f3;
+    border-radius: 8px;
+  }
+
+  .reference-info {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .ref-name {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.4rem;
+    color: var(--clay);
+    margin-bottom: 4px;
+  }
+
+  .ref-desc {
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .ref-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ref-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--ink);
+    padding: 4px 8px;
+    background: #faf8f3;
+    border-radius: 4px;
+  }
+
+  .ref-label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--clay);
+  }
+
+  /* ===== 中栏：操作画布 ===== */
+  .canvas-panel {
+    flex: 1;
+    align-items: center;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  #game-canvas {
+    background: linear-gradient(180deg, #faf8f3 0%, #f0ebe0 100%);
+    border-radius: 8px;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  #game-canvas:active {
+    cursor: grabbing;
+  }
+
+  .canvas-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(44,36,24,0.7);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .canvas-hint.hidden {
+    opacity: 0;
+  }
+
+  .canvas-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .control-label {
+    font-size: 0.85rem;
+    color: var(--gray);
+    white-space: nowrap;
+  }
+
+  .slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--paper-dark);
+    outline: none;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--clay);
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--clay);
+    cursor: pointer;
+    border: none;
+  }
+
+  .control-value {
+    font-size: 0.85rem;
+    color: var(--clay);
+    font-weight: 700;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  .action-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--clay);
+    background: white;
+    color: var(--clay);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .action-btn:hover {
+    background: var(--paper-dark);
+  }
+
+  .action-btn.primary {
+    background: var(--clay);
+    color: white;
+  }
+
+  .action-btn.primary:hover {
+    background: #6b3410;
+  }
+
+  /* ===== 右栏：评分系统 ===== */
+  .score-panel {
+    width: 260px;
+    flex-shrink: 0;
+  }
+
+  .score-ring-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .score-ring {
+    transition: stroke-dashoffset 0.5s ease;
+  }
+
+  #score-ring-circle {
+    transition: stroke-dashoffset 0.5s ease;
+  }
+
+  .score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .score-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--clay);
+    display: block;
+    line-height: 1;
+  }
+
+  .score-unit {
+    font-size: 0.75rem;
+    color: var(--gray);
+  }
+
+  .score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .score-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .score-item-name {
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+
+  .score-item-val {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--clay);
+  }
+
+  .score-bar {
+    height: 6px;
+    background: var(--paper-dark);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--clay), var(--clay-light));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .score-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #faf8f3;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .tip-icon {
+    flex-shrink: 0;
+  }
+
+  /* ===== 内联帮助 ===== */
+  .help-inline {
+    margin-top: 12px;
+    padding: 12px;
+    background: #faf8f3;
+    border-radius: 8px;
+    border-left: 3px solid var(--clay);
+  }
+
+  .help-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--clay);
+    margin-bottom: 8px;
+  }
+
+  .help-list {
+    list-style: none;
+    counter-reset: help-counter;
+    padding: 0;
+    margin: 0;
+  }
+
+  .help-list li {
+    counter-increment: help-counter;
+    font-size: 0.72rem;
+    color: var(--gray);
+    line-height: 1.6;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .help-list li::before {
+    content: counter(help-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--clay);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .help-list li strong {
+    color: var(--ink);
+  }
+
+  /* ===== 底部器型选择 ===== */
+  .shape-selector {
+    display: flex;
+    gap: 12px;
+    padding: 20px 16px;
+    max-width: 1400px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .shape-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 16px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+
+  .shape-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .shape-card.active {
+    border-color: var(--clay);
+    background: #faf8f3;
+  }
+
+  .shape-thumb {
+    pointer-events: none;
+  }
+
+  .shape-name {
+    font-size: 0.8rem;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .shape-card.active .shape-name {
+    color: var(--clay);
+  }
+
+  /* ===== 弹窗 ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.05);
+    color: var(--ink);
+    font-size: 1.4rem;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover {
+    background: rgba(0,0,0,0.1);
+  }
+
+  .modal-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.6rem;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .help-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--clay);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .help-step p {
+    font-size: 0.9rem;
+    color: var(--ink);
+    line-height: 1.6;
+    padding-top: 3px;
+  }
+
+  /* ===== 结果弹窗 ===== */
+  .result-modal {
+    text-align: center;
+  }
+
+  .result-score-ring {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  #result-ring {
+    transition: stroke-dashoffset 1s ease;
+  }
+
+  .result-score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .result-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--clay);
+    display: block;
+    line-height: 1;
+  }
+
+  .result-grade {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.2rem;
+    color: var(--kiln);
+  }
+
+  .result-comment {
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 960px) {
+    .game-body {
+      flex-direction: column;
+    }
+
+    .reference-panel,
+    .score-panel {
+      width: 100%;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .reference-canvas-wrap {
+      margin-bottom: 0;
+    }
+
+    .score-ring-wrap {
+      margin-bottom: 0;
+    }
+
+    .score-breakdown {
+      flex: 1;
+      min-width: 200px;
+      margin-bottom: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .game-header {
+      padding: 12px 16px;
+    }
+
+    .game-body {
+      padding: 0 16px;
+    }
+
+    .shape-selector {
+      padding: 16px;
+      gap: 8px;
+      overflow-x: auto;
+      justify-content: flex-start;
+    }
+
+    .shape-card {
+      flex-shrink: 0;
+      padding: 8px 12px;
+    }
+
+    #game-canvas {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+    }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  'use strict';
+
+  // ===== 常量 =====
+  const SHAPE_POINTS = 120;
+  const CANVAS_W = 400;
+  const CANVAS_H = 520;
+  const REF_CANVAS_W = 200;
+  const REF_CANVAS_H = 460;
+  const PADDING = 50;
+  const CENTER_X = CANVAS_W / 2;
+  const SCALE = 2.2;
+
+  // ===== 器型定义 =====
+  const SHAPE_INFO = {
+    bowl: {
+      name: '碗',
+      desc: '敞口收底，源于新石器时代的食器',
+      generate: function(t) {
+        return 25 + 55 * Math.pow(t, 0.5);
+      }
+    },
+    vase: {
+      name: '梅瓶',
+      desc: '小口丰肩，宋代经典酒器，体态修长',
+      generate: function(t) {
+        return 22 + 48 * Math.sin(Math.PI * Math.pow(t, 0.65)) * (1 - 0.4 * t);
+      }
+    },
+    jar: {
+      name: '罐',
+      desc: '鼓腹收口，储物实用器，历代常见',
+      generate: function(t) {
+        return 28 + 42 * Math.sin(Math.PI * t);
+      }
+    },
+    goblet: {
+      name: '高足杯',
+      desc: '细足宽口，元代流行，饮酒用具',
+      generate: function(t) {
+        if (t < 0.35) return 12 + 8 * t;
+        return 15 + 60 * Math.pow((t - 0.35) / 0.65, 0.4);
+      }
+    },
+    flowerVase: {
+      name: '花瓶',
+      desc: '细颈鼓腹，插花陈设，文人雅趣',
+      generate: function(t) {
+        return 20 + 55 * Math.sin(Math.PI * Math.pow(t, 0.55)) * (1 - 0.7 * Math.pow(t, 2.5));
+      }
+    }
+  };
+
+  // ===== 状态 =====
+  let playerShape = new Array(SHAPE_POINTS).fill(40);
+  let targetShape = new Array(SHAPE_POINTS);
+  let currentShapeType = 'bowl';
+  let isDragging = false;
+  let lastMouseY = 0;
+  let lastMouseX = 0;
+  let strength = 5;
+  let rotation = 0;
+  let hasInteracted = false;
+  let isFinished = false;
+
+  // ===== Canvas =====
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  const refCanvas = document.getElementById('reference-canvas');
+  const refCtx = refCanvas.getContext('2d');
+
+  // ===== 生成目标形状 =====
+  function generateTargetShape(type) {
+    const info = SHAPE_INFO[type];
+    const shape = new Array(SHAPE_POINTS);
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const t = i / (SHAPE_POINTS - 1);
+      shape[i] = info.generate(t);
+    }
+    return shape;
+  }
+
+  // ===== 重置玩家形状（圆柱体起始） =====
+  function resetPlayerShape() {
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      playerShape[i] = 40;
+    }
+    isFinished = false;
+    hasInteracted = false;
+  }
+
+  // ===== 切换器型 =====
+  function switchShape(type) {
+    currentShapeType = type;
+    targetShape = generateTargetShape(type);
+    resetPlayerShape();
+    updateReferenceInfo();
+    drawReference();
+    drawGame();
+    updateScore();
+    document.getElementById('canvas-hint').classList.remove('hidden');
+  }
+
+  // ===== 更新参考器型信息 =====
+  function updateReferenceInfo() {
+    const info = SHAPE_INFO[currentShapeType];
+    document.getElementById('ref-name').textContent = info.name;
+    document.getElementById('ref-desc').textContent = info.desc;
+  }
+
+  // ===== 绘制参考器型 =====
+  function drawReference() {
+    refCtx.clearRect(0, 0, REF_CANVAS_W, REF_CANVAS_H);
+    const cx = REF_CANVAS_W / 2;
+    const refScale = 1.0;
+    const refPadding = 30;
+    const usableH = REF_CANVAS_H - refPadding * 2;
+    const stepY = usableH / (SHAPE_POINTS - 1);
+
+    // 背景网格
+    refCtx.strokeStyle = 'rgba(139,69,19,0.05)';
+    refCtx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const y = refPadding + (usableH / 4) * i;
+      refCtx.beginPath();
+      refCtx.moveTo(0, y);
+      refCtx.lineTo(REF_CANVAS_W, y);
+      refCtx.stroke();
+    }
+
+    // 中轴线
+    refCtx.strokeStyle = 'rgba(139,69,19,0.15)';
+    refCtx.setLineDash([3, 3]);
+    refCtx.beginPath();
+    refCtx.moveTo(cx, refPadding);
+    refCtx.lineTo(cx, REF_CANVAS_H - refPadding);
+    refCtx.stroke();
+    refCtx.setLineDash([]);
+
+    // 填充
+    const grad = refCtx.createLinearGradient(cx - 60, 0, cx + 60, 0);
+    grad.addColorStop(0, 'rgba(139,69,19,0.15)');
+    grad.addColorStop(0.5, 'rgba(196,163,90,0.3)');
+    grad.addColorStop(1, 'rgba(139,69,19,0.15)');
+
+    refCtx.fillStyle = grad;
+    refCtx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = refPadding + i * stepY;
+      const r = targetShape[i] * refScale;
+      if (i === 0) refCtx.moveTo(cx - r, y);
+      else refCtx.lineTo(cx - r, y);
+    }
+    for (let i = SHAPE_POINTS - 1; i >= 0; i--) {
+      const y = refPadding + i * stepY;
+      const r = targetShape[i] * refScale;
+      refCtx.lineTo(cx + r, y);
+    }
+    refCtx.closePath();
+    refCtx.fill();
+
+    // 轮廓线
+    refCtx.strokeStyle = 'rgba(139,69,19,0.5)';
+    refCtx.lineWidth = 1.5;
+    refCtx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = refPadding + i * stepY;
+      const r = targetShape[i] * refScale;
+      if (i === 0) refCtx.moveTo(cx - r, y);
+      else refCtx.lineTo(cx - r, y);
+    }
+    refCtx.stroke();
+
+    refCtx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = refPadding + i * stepY;
+      const r = targetShape[i] * refScale;
+      if (i === 0) refCtx.moveTo(cx + r, y);
+      else refCtx.lineTo(cx + r, y);
+    }
+    refCtx.stroke();
+
+    // 底部轮盘
+    refCtx.fillStyle = 'rgba(139,69,19,0.2)';
+    refCtx.beginPath();
+    refCtx.ellipse(cx, REF_CANVAS_H - refPadding + 4, 35, 6, 0, 0, Math.PI * 2);
+    refCtx.fill();
+  }
+
+  // ===== 绘制游戏画布 =====
+  function drawGame() {
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+    const usableH = CANVAS_H - PADDING * 2;
+    const stepY = usableH / (SHAPE_POINTS - 1);
+
+    // 背景网格
+    ctx.strokeStyle = 'rgba(139,69,19,0.04)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+      const y = PADDING + (usableH / 5) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(CANVAS_W, y);
+      ctx.stroke();
+    }
+
+    // 中轴线
+    ctx.strokeStyle = 'rgba(139,69,19,0.1)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(CENTER_X, PADDING);
+    ctx.lineTo(CENTER_X, CANVAS_H - PADDING);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 绘制目标轮廓（半透明虚线）
+    ctx.strokeStyle = 'rgba(139,69,19,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = PADDING + i * stepY;
+      const r = targetShape[i] * SCALE;
+      if (i === 0) ctx.moveTo(CENTER_X - r, y);
+      else ctx.lineTo(CENTER_X - r, y);
+    }
+    ctx.stroke();
+    ctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = PADDING + i * stepY;
+      const r = targetShape[i] * SCALE;
+      if (i === 0) ctx.moveTo(CENTER_X + r, y);
+      else ctx.lineTo(CENTER_X + r, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 绘制玩家陶坯
+    // 主体渐变
+    const clayGrad = ctx.createLinearGradient(CENTER_X - 80, 0, CENTER_X + 80, 0);
+    clayGrad.addColorStop(0, '#6b3410');
+    clayGrad.addColorStop(0.3, '#8B4513');
+    clayGrad.addColorStop(0.5, '#a55a28');
+    clayGrad.addColorStop(0.7, '#8B4513');
+    clayGrad.addColorStop(1, '#6b3410');
+
+    ctx.fillStyle = clayGrad;
+    ctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      if (i === 0) ctx.moveTo(CENTER_X - r, y);
+      else ctx.lineTo(CENTER_X - r, y);
+    }
+    for (let i = SHAPE_POINTS - 1; i >= 0; i--) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      ctx.lineTo(CENTER_X + r, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // 旋转纹理线（模拟拉坯旋转痕迹）
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < SHAPE_POINTS; i += 4) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      ctx.beginPath();
+      ctx.ellipse(CENTER_X, y, r, r * 0.15, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // 高光
+    const highlightGrad = ctx.createLinearGradient(CENTER_X - 80, 0, CENTER_X, 0);
+    highlightGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    highlightGrad.addColorStop(0.7, 'rgba(255,255,255,0.08)');
+    highlightGrad.addColorStop(1, 'rgba(255,255,255,0.2)');
+    ctx.fillStyle = highlightGrad;
+    ctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      if (i === 0) ctx.moveTo(CENTER_X - r, y);
+      else ctx.lineTo(CENTER_X - r, y);
+    }
+    for (let i = SHAPE_POINTS - 1; i >= 0; i--) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      ctx.lineTo(CENTER_X - r * 0.7, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // 轮廓线
+    ctx.strokeStyle = 'rgba(44,36,24,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      if (i === 0) ctx.moveTo(CENTER_X - r, y);
+      else ctx.lineTo(CENTER_X - r, y);
+    }
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = PADDING + i * stepY;
+      const r = playerShape[i] * SCALE;
+      if (i === 0) ctx.moveTo(CENTER_X + r, y);
+      else ctx.lineTo(CENTER_X + r, y);
+    }
+    ctx.stroke();
+
+    // 底部轮盘
+    const wheelGrad = ctx.createRadialGradient(CENTER_X, CANVAS_H - PADDING + 8, 5, CENTER_X, CANVAS_H - PADDING + 8, 60);
+    wheelGrad.addColorStop(0, '#5a5a5a');
+    wheelGrad.addColorStop(0.5, '#3a3a3a');
+    wheelGrad.addColorStop(1, '#2a2a2a');
+    ctx.fillStyle = wheelGrad;
+    ctx.beginPath();
+    ctx.ellipse(CENTER_X, CANVAS_H - PADDING + 8, 65, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 轮盘旋转标记
+    ctx.strokeStyle = 'rgba(196,163,90,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(CENTER_X, CANVAS_H - PADDING + 8, 55, 8, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 旋转刻度线
+    rotation += 0.02;
+    for (let i = 0; i < 8; i++) {
+      const angle = rotation + (i / 8) * Math.PI * 2;
+      const x1 = CENTER_X + Math.cos(angle) * 50;
+      const y1 = CANVAS_H - PADDING + 8 + Math.sin(angle) * 7;
+      const x2 = CENTER_X + Math.cos(angle) * 60;
+      const y2 = CANVAS_H - PADDING + 8 + Math.sin(angle) * 9;
+      ctx.strokeStyle = 'rgba(196,163,90,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  }
+
+  // ===== 交互处理 =====
+  function getCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_W / rect.width;
+    const scaleY = CANVAS_H / rect.height;
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function handleStart(e) {
+    if (isFinished) return;
+    e.preventDefault();
+    isDragging = true;
+    const pos = getCanvasPos(e);
+    lastMouseY = pos.y;
+    lastMouseX = pos.x;
+    if (!hasInteracted) {
+      hasInteracted = true;
+      document.getElementById('canvas-hint').classList.add('hidden');
+    }
+  }
+
+  function handleMove(e) {
+    if (!isDragging || isFinished) return;
+    e.preventDefault();
+    const pos = getCanvasPos(e);
+    const deltaY = pos.y - lastMouseY;
+    const deltaX = Math.abs(pos.x - lastMouseX);
+
+    // 将 Y 位置映射到 shape 索引
+    const usableH = CANVAS_H - PADDING * 2;
+    const t = (pos.y - PADDING) / usableH;
+    const index = Math.round(t * (SHAPE_POINTS - 1));
+
+    if (index < 0 || index >= SHAPE_POINTS) return;
+
+    // 力度：滑块 + 横向移动
+    const power = strength * (1 + deltaX * 0.02);
+    // 向上拖 → 变细（减小半径），向下拖 → 变粗（增大半径）
+    const change = -deltaY * 0.3 * power * 0.1;
+    const targetVal = Math.max(8, Math.min(85, playerShape[index] + change));
+
+    // 修改当前点及邻近点（平滑修改）
+    const range = 3;
+    for (let i = -range; i <= range; i++) {
+      const idx = index + i;
+      if (idx < 0 || idx >= SHAPE_POINTS) continue;
+      const influence = 1 - Math.abs(i) / (range + 1);
+      playerShape[idx] = playerShape[idx] + (targetVal - playerShape[idx]) * influence * 0.5;
+      playerShape[idx] = Math.max(8, Math.min(85, playerShape[idx]));
+    }
+
+    lastMouseY = pos.y;
+    lastMouseX = pos.x;
+
+    drawGame();
+    updateScore();
+  }
+
+  function handleEnd() {
+    isDragging = false;
+  }
+
+  // ===== 评分系统 =====
+  function calculateScore() {
+    // 1. 轮廓匹配 (50%)
+    let totalDiff = 0;
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      totalDiff += Math.abs(playerShape[i] - targetShape[i]);
+    }
+    const avgDiff = totalDiff / SHAPE_POINTS;
+    const maxDiff = 80;
+    const shapeMatch = Math.max(0, 1 - avgDiff / maxDiff);
+
+    // 2. 比例协调 (20%) — 最宽处位置与目标对比
+    let playerMaxR = 0, targetMaxR = 0;
+    let playerMaxIdx = 0, targetMaxIdx = 0;
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      if (playerShape[i] > playerMaxR) { playerMaxR = playerShape[i]; playerMaxIdx = i; }
+      if (targetShape[i] > targetMaxR) { targetMaxR = targetShape[i]; targetMaxIdx = i; }
+    }
+    // 最宽处位置偏差（0-1）
+    const posDiff = Math.abs(playerMaxIdx - targetMaxIdx) / SHAPE_POINTS;
+    // 最宽处宽度偏差（0-1）
+    const widthDiff = Math.abs(playerMaxR - targetMaxR) / 80;
+    const proportion = Math.max(0, 1 - (posDiff + widthDiff) / 2);
+
+    // 3. 表面平滑 (30%)
+    let smoothDiff = 0;
+    for (let i = 0; i < SHAPE_POINTS - 1; i++) {
+      smoothDiff += Math.abs(playerShape[i] - playerShape[i + 1]);
+    }
+    const avgSmooth = smoothDiff / (SHAPE_POINTS - 1);
+    const smoothness = Math.max(0, 1 - avgSmooth / 15);
+
+    const total = Math.round(shapeMatch * 50 + proportion * 20 + smoothness * 30);
+
+    return {
+      total: Math.min(100, Math.max(0, total)),
+      match: Math.round(shapeMatch * 100),
+      proportion: Math.round(proportion * 100),
+      smoothness: Math.round(smoothness * 100)
+    };
+  }
+
+  function updateScore() {
+    const score = calculateScore();
+
+    // 圆环
+    const circumference = 2 * Math.PI * 60;
+    const offset = circumference * (1 - score.total / 100);
+    document.getElementById('score-ring-circle').style.strokeDashoffset = offset;
+
+    // 数字
+    document.getElementById('score-num').textContent = score.total;
+
+    // 分项
+    document.getElementById('match-val').textContent = score.match + '%';
+    document.getElementById('match-bar').style.width = score.match + '%';
+    document.getElementById('prop-val').textContent = score.proportion + '%';
+    document.getElementById('prop-bar').style.width = score.proportion + '%';
+    document.getElementById('smooth-val').textContent = score.smoothness + '%';
+    document.getElementById('smooth-bar').style.width = score.smoothness + '%';
+
+    // 小贴士
+    const tipEl = document.getElementById('score-tip').querySelector('.tip-text');
+    if (!hasInteracted) {
+      tipEl.textContent = '开始塑形，系统将实时评分';
+    } else if (score.match < 40) {
+      tipEl.textContent = '轮廓差距较大，注意参考左侧目标器型的形状';
+    } else if (score.smoothness < 50) {
+      tipEl.textContent = '表面不够平滑，尝试小力度缓慢拖动';
+    } else if (score.proportion < 50) {
+      tipEl.textContent = '比例不够协调，注意器型最宽处的位置';
+    } else if (score.total < 60) {
+      tipEl.textContent = '继续努力，注意整体轮廓的吻合度';
+    } else if (score.total < 80) {
+      tipEl.textContent = '做得不错！细节处再精修一下';
+    } else {
+      tipEl.textContent = '形神兼备，匠人天赋！';
+    }
+  }
+
+  // ===== 完成塑形 =====
+  function finishShape() {
+    if (!hasInteracted) return;
+    isFinished = true;
+    const score = calculateScore();
+
+    // 显示结果弹窗
+    const modal = document.getElementById('result-modal');
+    modal.classList.add('show');
+
+    // 圆环动画
+    const circumference = 2 * Math.PI * 68;
+    const offset = circumference * (1 - score.total / 100);
+    setTimeout(function() {
+      document.getElementById('result-ring').style.strokeDashoffset = offset;
+    }, 100);
+
+    document.getElementById('result-num').textContent = score.total;
+
+    // 评级
+    let grade, comment;
+    if (score.total >= 90) {
+      grade = '神品';
+      comment = '形神兼备，浑然天成！你的手艺已臻化境。';
+    } else if (score.total >= 75) {
+      grade = '上品';
+      comment = '器型优美，线条流畅，颇有匠人风范。';
+    } else if (score.total >= 60) {
+      grade = '中品';
+      comment = '基本成型，继续练习必能更上一层楼。';
+    } else if (score.total >= 40) {
+      grade = '下品';
+      comment = '初见雏形，多观察参考器型再试试。';
+    } else {
+      grade = '生坯';
+      comment = '还需要多多练习，从基础器型开始吧。';
+    }
+    document.getElementById('result-grade').textContent = grade;
+    document.getElementById('result-comment').textContent = comment;
+  }
+
+  // ===== 绘制器型缩略图 =====
+  function drawShapeThumb(thumbCanvas, type) {
+    const tctx = thumbCanvas.getContext('2d');
+    const w = thumbCanvas.width;
+    const h = thumbCanvas.height;
+    tctx.clearRect(0, 0, w, h);
+
+    const shape = generateTargetShape(type);
+    const cx = w / 2;
+    const padding = 6;
+    const usableH = h - padding * 2;
+    const maxR = Math.max.apply(null, shape);
+    const scale = (w / 2 - padding) / maxR;
+
+    tctx.fillStyle = 'rgba(139,69,19,0.3)';
+    tctx.strokeStyle = 'rgba(139,69,19,0.6)';
+    tctx.lineWidth = 1;
+
+    tctx.beginPath();
+    for (let i = 0; i < SHAPE_POINTS; i++) {
+      const y = padding + (i / (SHAPE_POINTS - 1)) * usableH;
+      const r = shape[i] * scale;
+      if (i === 0) tctx.moveTo(cx - r, y);
+      else tctx.lineTo(cx - r, y);
+    }
+    for (let i = SHAPE_POINTS - 1; i >= 0; i--) {
+      const y = padding + (i / (SHAPE_POINTS - 1)) * usableH;
+      const r = shape[i] * scale;
+      tctx.lineTo(cx + r, y);
+    }
+    tctx.closePath();
+    tctx.fill();
+    tctx.stroke();
+  }
+
+  // ===== 事件绑定 =====
+  canvas.addEventListener('mousedown', handleStart);
+  canvas.addEventListener('mousemove', handleMove);
+  canvas.addEventListener('mouseup', handleEnd);
+  canvas.addEventListener('mouseleave', handleEnd);
+  canvas.addEventListener('touchstart', handleStart, { passive: false });
+  canvas.addEventListener('touchmove', handleMove, { passive: false });
+  canvas.addEventListener('touchend', handleEnd);
+
+  // 力度滑块
+  const strengthSlider = document.getElementById('strength-slider');
+  strengthSlider.addEventListener('input', function(e) {
+    strength = parseInt(e.target.value);
+    document.getElementById('strength-value').textContent = strength;
+  });
+
+  // 重置按钮
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    resetPlayerShape();
+    drawGame();
+    updateScore();
+    document.getElementById('canvas-hint').classList.remove('hidden');
+  });
+
+  // 完成按钮
+  document.getElementById('finish-btn').addEventListener('click', finishShape);
+
+  // 弹窗关闭
+  document.getElementById('result-close').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+  });
+  document.getElementById('result-retry').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+    resetPlayerShape();
+    drawGame();
+    updateScore();
+    document.getElementById('canvas-hint').classList.remove('hidden');
+  });
+  document.getElementById('result-next').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+    const types = Object.keys(SHAPE_INFO);
+    const currentIdx = types.indexOf(currentShapeType);
+    const nextIdx = (currentIdx + 1) % types.length;
+    const nextType = types[nextIdx];
+    // 更新选择器
+    document.querySelectorAll('.shape-card').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.shape === nextType);
+    });
+    switchShape(nextType);
+  });
+
+  // 点击遮罩关闭
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  // 器型选择
+  document.querySelectorAll('.shape-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('.shape-card').forEach(function(c) {
+        c.classList.remove('active');
+      });
+      card.classList.add('active');
+      switchShape(card.dataset.shape);
+    });
+  });
+
+  // ===== 动画循环（轮盘旋转） =====
+  function animate() {
+    if (!isDragging) {
+      drawGame();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // ===== 初始化 =====
+  function init() {
+    // 绘制缩略图
+    document.querySelectorAll('.shape-thumb').forEach(function(thumb) {
+      drawShapeThumb(thumb, thumb.dataset.shape);
+    });
+
+    // 初始化器型
+    switchShape('bowl');
+
+    // 启动动画
+    animate();
+  }
+
+  init();
+})();
+</script>
+</Layout>

@@ -1,0 +1,252 @@
+---
+/**
+ * 非遗门类屏风组件
+ * 以屏风式卡片展示陶瓷、刺绣、木雕三个非遗方向
+ */
+
+// 门类数据：名称、代表项目、简介、对应页面路径
+const categories = [
+  {
+    id: "ceramic",
+    name: "陶瓷技艺",
+    project: "青花瓷 / 汝窑",
+    intro: "取大地之土，经火炼成器。千年窑火，烧就东方瓷韵。",
+    image: "/images/category-ceramic.jpg",
+    alt: "青花瓷瓶图片",
+    href: "/crafts/ceramic"
+  },
+  {
+    id: "embroidery",
+    name: "刺绣工艺",
+    project: "苏绣 / 蜀绣",
+    intro: "以针为笔，以线为墨。一针一线，绣出山河锦绣。",
+    image: "/images/category-embroidery.jpg",
+    alt: "刺绣作品图片",
+    href: "/crafts/embroidery"
+  },
+  {
+    id: "woodcarving",
+    name: "木雕技艺",
+    project: "东阳木雕 / 潮州木雕",
+    intro: "化木为灵，精雕细琢。刀锋游走间，故事栩栩如生。",
+    image: "/images/category-woodcarving.jpg",
+    alt: "木雕摆件图片",
+    href: "/crafts/woodcarving"
+  }
+];
+---
+
+<section class="section category-section" id="categories" aria-labelledby="categories-title">
+  <div class="container">
+    <h2 class="section-title" id="categories-title">门类屏风</h2>
+    <p class="section-subtitle">三类非遗技艺，三种匠心传承</p>
+
+    <div class="category-screens">
+      {categories.map(category => (
+        <a href={category.href} class="screen-card" aria-label={`查看${category.name}`}>
+          <div class="card-image-wrapper">
+            <img
+              src={category.image}
+              alt={category.alt}
+              class="card-image"
+              loading="lazy"
+              onerror="this.style.display='none'"
+            />
+            <div class="image-fallback">
+              <span>{category.name}</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">{category.name}</h3>
+            <p class="card-project">{category.project}</p>
+            <p class="card-intro">{category.intro}</p>
+          </div>
+
+          <!-- 四角回字纹装饰 -->
+          <span class="corner corner-tl" aria-hidden="true"></span>
+          <span class="corner corner-tr" aria-hidden="true"></span>
+          <span class="corner corner-bl" aria-hidden="true"></span>
+          <span class="corner corner-br" aria-hidden="true"></span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .category-section {
+    background-color: var(--color-bg-light);
+  }
+
+  .category-screens {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+  }
+
+  /* 屏风式卡片 */
+  .screen-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-light);
+    border: 2px solid var(--color-primary);
+    border-radius: 0;
+    overflow: hidden;
+    transition:
+      transform 0.35s ease,
+      border-color 0.35s ease,
+      box-shadow 0.35s ease;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  .screen-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--color-accent);
+    box-shadow: 0 12px 32px rgba(139, 69, 19, 0.2);
+  }
+
+  /* 四角回字纹 */
+  .corner {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-secondary);
+    transition: border-color 0.35s ease;
+    pointer-events: none;
+  }
+
+  .screen-card:hover .corner {
+    border-color: var(--color-accent);
+  }
+
+  .corner-tl {
+    top: 8px;
+    left: 8px;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .corner-tr {
+    top: 8px;
+    right: 8px;
+    border-left: none;
+    border-bottom: none;
+  }
+
+  .corner-bl {
+    bottom: 8px;
+    left: 8px;
+    border-right: none;
+    border-top: none;
+  }
+
+  .corner-br {
+    bottom: 8px;
+    right: 8px;
+    border-left: none;
+    border-top: none;
+  }
+
+  .card-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-bg-medium) 0%, var(--color-bg-dark) 100%);
+  }
+
+  .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .screen-card:hover .card-image {
+    transform: scale(1.05);
+  }
+
+  .image-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-light);
+    font-family: var(--font-display);
+    font-size: 2rem;
+    z-index: 0;
+  }
+
+  .card-image:not([src=""]) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-body {
+    padding: var(--spacing-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .card-project {
+    font-size: 0.875rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .card-intro {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  /* 响应式：平板两列，手机单列 */
+  @media (max-width: 1024px) {
+    .category-screens {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .category-screens {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * 门类屏风滚动入场动画
+   * 使用 GSAP ScrollTrigger 让三张卡片依次从下方滑入
+   */
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    gsap.to(".screen-card", {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      stagger: 0.2,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: ".category-screens",
+        start: "top 75%",
+        toggleActions: "play none none none"
+      }
+    });
+  });
+</script>

@@ -1,0 +1,525 @@
+---
+/**
+ * 主题色切换组件
+ * 右上角设置按钮，点击展开主题色面板
+ * 支持：色相滑块（0-360°）+ 预设主题色 + 明暗模式切换
+ * 使用 CSS 变量 --hue 实时改变全站主题色，localStorage 持久化
+ */
+
+/* 预设主题色（非遗风格） */
+const presets = [
+  { name: "赭石", hue: 25, desc: "陶土色" },
+  { name: "朱砂", hue: 5, desc: "漆器红" },
+  { name: "缃色", hue: 45, desc: "丝绸黄" },
+  { name: "青碧", hue: 175, desc: "瓷器青" },
+  { name: "黛蓝", hue: 215, desc: "青花蓝" },
+  { name: "紫檀", hue: 320, desc: "木雕紫" },
+  { name: "墨绿", hue: 140, desc: "青铜绿" },
+  { name: "茶褐", hue: 30, desc: "茶汤色" },
+];
+---
+
+<!-- 主题设置触发按钮 -->
+<button
+  class="theme-toggle"
+  id="theme-toggle"
+  aria-label="主题设置"
+  aria-expanded="false"
+  aria-controls="theme-panel"
+  type="button"
+>
+  <svg class="theme-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+</button>
+
+<!-- 主题设置面板 -->
+<div class="theme-panel" id="theme-panel" role="dialog" aria-label="主题设置面板" hidden>
+  <div class="theme-panel-header">
+    <h3 class="theme-panel-title">主题设置</h3>
+    <button class="theme-panel-close" id="theme-panel-close" aria-label="关闭" type="button">×</button>
+  </div>
+
+  <!-- 明暗模式切换 -->
+  <div class="theme-section">
+    <label class="theme-section-label">显示模式</label>
+    <div class="theme-mode-switch" role="radiogroup" aria-label="明暗模式">
+      <button class="mode-btn" data-mode="light" role="radio" aria-checked="false">浅色</button>
+      <button class="mode-btn" data-mode="dark" role="radio" aria-checked="false">深色</button>
+      <button class="mode-btn active" data-mode="auto" role="radio" aria-checked="true">跟随系统</button>
+    </div>
+  </div>
+
+  <!-- 色相滑块 -->
+  <div class="theme-section">
+    <label class="theme-section-label">
+      主题色相 <span class="hue-value" id="hue-value">25°</span>
+    </label>
+    <div class="hue-slider-wrap">
+      <input
+        type="range"
+        class="hue-slider"
+        id="hue-slider"
+        min="0"
+        max="360"
+        value="25"
+        aria-label="色相滑块"
+      />
+      <div class="hue-preview" id="hue-preview"></div>
+    </div>
+  </div>
+
+  <!-- 预设主题色 -->
+  <div class="theme-section">
+    <label class="theme-section-label">预设主题</label>
+    <div class="preset-grid">
+      {presets.map(p => (
+        <button
+          class="preset-btn"
+          data-hue={p.hue}
+          title={`${p.name} - ${p.desc}`}
+          style={`background-color: hsl(${p.hue}, 75%, 45%);`}
+          type="button"
+        >
+          <span class="preset-name">{p.name}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- 重置按钮 -->
+  <button class="theme-reset" id="theme-reset" type="button">恢复默认</button>
+</div>
+
+<!-- 遮罩层 -->
+<div class="theme-overlay" id="theme-overlay" hidden></div>
+
+<style>
+  /* 触发按钮 */
+  .theme-toggle {
+    position: fixed;
+    top: 14px;
+    right: 20px;
+    z-index: 1100;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: var(--color-text-light);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+  }
+
+  .theme-toggle:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-secondary);
+    transform: rotate(45deg);
+  }
+
+  .theme-toggle[aria-expanded="true"] {
+    background-color: var(--color-primary);
+    transform: rotate(45deg);
+  }
+
+  .theme-icon {
+    display: block;
+  }
+
+  /* 设置面板 */
+  .theme-panel {
+    position: fixed;
+    top: 64px;
+    right: 20px;
+    z-index: 1101;
+    width: 300px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background-color: rgba(26, 26, 46, 0.98);
+    border: 1px solid rgba(196, 163, 90, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    color: var(--color-text-light);
+    backdrop-filter: blur(12px);
+    transform: translateX(20px) scale(0.95);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .theme-panel.open {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+
+  .theme-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid rgba(196, 163, 90, 0.2);
+  }
+
+  .theme-panel-title {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    color: var(--color-secondary);
+    margin: 0;
+  }
+
+  .theme-panel-close {
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+  }
+
+  .theme-panel-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* 区块样式 */
+  .theme-section {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .theme-section-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    opacity: 0.8;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .hue-value {
+    color: var(--color-secondary);
+    font-weight: 700;
+    margin-left: var(--spacing-xs);
+  }
+
+  /* 明暗模式切换 */
+  .theme-mode-switch {
+    display: flex;
+    gap: 4px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-md);
+    padding: 3px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 6px 8px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-light);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+  }
+
+  .mode-btn:hover {
+    opacity: 1;
+  }
+
+  .mode-btn.active {
+    background-color: var(--color-primary);
+    opacity: 1;
+  }
+
+  /* 色相滑块 */
+  .hue-slider-wrap {
+    position: relative;
+    padding: 8px 0;
+  }
+
+  .hue-slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right,
+      hsl(0, 75%, 50%), hsl(60, 75%, 50%), hsl(120, 75%, 50%),
+      hsl(180, 75%, 50%), hsl(240, 75%, 50%), hsl(300, 75%, 50%), hsl(360, 75%, 50%));
+    border-radius: var(--radius-pill);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .hue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border: 3px solid var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+  }
+
+  .hue-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  .hue-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border: 3px solid var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .hue-preview {
+    margin-top: 8px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg,
+      hsl(var(--hue), 75%, 35%),
+      hsl(calc(var(--hue) + 30), 50%, 55%));
+    transition: background 0.2s ease;
+  }
+
+  /* 预设主题色 */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .preset-btn {
+    aspect-ratio: 1;
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preset-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+  }
+
+  .preset-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-text-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .preset-btn.active {
+    border-color: var(--color-text-light);
+    box-shadow: 0 0 0 2px var(--color-secondary);
+  }
+
+  .preset-name {
+    position: relative;
+    z-index: 1;
+    font-size: 0.6875rem;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  }
+
+  /* 重置按钮 */
+  .theme-reset {
+    width: 100%;
+    padding: 8px;
+    margin-top: var(--spacing-sm);
+    background-color: transparent;
+    border: 1px solid rgba(196, 163, 90, 0.4);
+    border-radius: var(--radius-md);
+    color: var(--color-text-light);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .theme-reset:hover {
+    background-color: rgba(196, 163, 90, 0.15);
+    border-color: var(--color-secondary);
+  }
+
+  /* 遮罩层 */
+  .theme-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1099;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .theme-overlay.open {
+    opacity: 1;
+  }
+
+  /* 移动端适配 */
+  @media (max-width: 480px) {
+    .theme-panel {
+      right: 10px;
+      left: 10px;
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * 主题切换交互逻辑
+   * 1. 色相滑块实时改变 --hue CSS 变量
+   * 2. 预设主题一键切换
+   * 3. 明暗模式（浅色/深色/跟随系统）
+   * 4. localStorage 持久化用户偏好
+   */
+  const STORAGE_KEY_HUE = "feiyi-theme-hue";
+  const STORAGE_KEY_MODE = "feiyi-theme-mode";
+  const DEFAULT_HUE = 25;
+
+  const toggle = document.getElementById("theme-toggle");
+  const panel = document.getElementById("theme-panel");
+  const overlay = document.getElementById("theme-overlay");
+  const closeBtn = document.getElementById("theme-panel-close");
+  const slider = document.getElementById("hue-slider") as HTMLInputElement;
+  const hueValue = document.getElementById("hue-value");
+  const huePreview = document.getElementById("hue-preview");
+  const presetBtns = document.querySelectorAll(".preset-btn");
+  const modeBtns = document.querySelectorAll(".mode-btn");
+  const resetBtn = document.getElementById("theme-reset");
+
+  /** 应用色相到文档 */
+  const applyHue = (hue: number) => {
+    document.documentElement.style.setProperty("--hue", String(hue));
+    if (hueValue) hueValue.textContent = `${hue}°`;
+    if (slider) slider.value = String(hue);
+    // 更新预设按钮激活态
+    presetBtns.forEach(btn => {
+      const btnHue = parseInt(btn.getAttribute("data-hue") || "0", 10);
+      btn.classList.toggle("active", btnHue === hue);
+    });
+  };
+
+  /** 应用明暗模式 */
+  const applyMode = (mode: string) => {
+    const root = document.documentElement;
+    if (mode === "light") {
+      root.removeAttribute("data-theme");
+    } else if (mode === "dark") {
+      root.setAttribute("data-theme", "dark");
+    } else {
+      // auto：跟随系统
+      root.removeAttribute("data-theme");
+    }
+    modeBtns.forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+      btn.setAttribute("aria-checked", String(btn.getAttribute("data-mode") === mode));
+    });
+  };
+
+  /** 打开面板 */
+  const openPanel = () => {
+    panel?.classList.add("open");
+    overlay?.classList.add("open");
+    panel?.removeAttribute("hidden");
+    overlay?.removeAttribute("hidden");
+    toggle?.setAttribute("aria-expanded", "true");
+  };
+
+  /** 关闭面板 */
+  const closePanel = () => {
+    panel?.classList.remove("open");
+    overlay?.classList.remove("open");
+    setTimeout(() => {
+      panel?.setAttribute("hidden", "");
+      overlay?.setAttribute("hidden", "");
+    }, 300);
+    toggle?.setAttribute("aria-expanded", "false");
+  };
+
+  /** 切换面板开合 */
+  const togglePanel = () => {
+    const isOpen = panel?.classList.contains("open");
+    if (isOpen) closePanel();
+    else openPanel();
+  };
+
+  // 初始化：从 localStorage 读取
+  const initTheme = () => {
+    const savedHue = localStorage.getItem(STORAGE_KEY_HUE);
+    const savedMode = localStorage.getItem(STORAGE_KEY_MODE) || "auto";
+    const hue = savedHue ? parseInt(savedHue, 10) : DEFAULT_HUE;
+    applyHue(hue);
+    applyMode(savedMode);
+  };
+
+  // 事件绑定
+  toggle?.addEventListener("click", togglePanel);
+  closeBtn?.addEventListener("click", closePanel);
+  overlay?.addEventListener("click", closePanel);
+
+  // 色相滑块
+  slider?.addEventListener("input", (e) => {
+    const target = e.target as HTMLInputElement;
+    const hue = parseInt(target.value, 10);
+    applyHue(hue);
+    localStorage.setItem(STORAGE_KEY_HUE, String(hue));
+  });
+
+  // 预设主题
+  presetBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const hue = parseInt(btn.getAttribute("data-hue") || "25", 10);
+      applyHue(hue);
+      localStorage.setItem(STORAGE_KEY_HUE, String(hue));
+    });
+  });
+
+  // 明暗模式
+  modeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.getAttribute("data-mode") || "auto";
+      applyMode(mode);
+      localStorage.setItem(STORAGE_KEY_MODE, mode);
+    });
+  });
+
+  // 重置
+  resetBtn?.addEventListener("click", () => {
+    applyHue(DEFAULT_HUE);
+    applyMode("auto");
+    localStorage.removeItem(STORAGE_KEY_HUE);
+    localStorage.removeItem(STORAGE_KEY_MODE);
+  });
+
+  // ESC 关闭
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePanel();
+  });
+
+  // 立即初始化（防止闪烁）
+  initTheme();
+</script>

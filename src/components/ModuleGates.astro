@@ -1,0 +1,218 @@
+---
+/**
+ * 四大模块入口组件
+ * 展示摄影、视频、3D、游戏四个子模块的入口卡片
+ */
+
+// 模块入口数据
+const modules = [
+  {
+    id: "gallery",
+    name: "摄影",
+    subtitle: "Gallery",
+    description: "透过镜头，记录非遗作品与传承人的真实瞬间",
+    href: "/gallery",
+    image: "/images/module-gallery.jpg",
+    icon: "📷"
+  },
+  {
+    id: "video",
+    name: "视频",
+    subtitle: "Animation",
+    description: "动画与实拍交织，讲述非遗技艺的源流与匠心",
+    href: "/video",
+    image: "/images/module-video.jpg",
+    icon: "🎬"
+  },
+  {
+    id: "model",
+    name: "3D 模型",
+    subtitle: "Model",
+    description: "360度旋转查看非遗作品，细观每一处工艺细节",
+    href: "/model",
+    image: "/images/module-3d.jpg",
+    icon: "🔄"
+  },
+  {
+    id: "game",
+    name: "游戏",
+    subtitle: "Game",
+    description: "亲手体验非遗制作流程，在游戏中感受匠心传承",
+    href: "/game",
+    image: "/images/module-game.jpg",
+    icon: "🎮"
+  }
+];
+---
+
+<section class="section module-section" id="modules" aria-labelledby="modules-title">
+  <div class="container">
+    <h2 class="section-title" id="modules-title">多维探索</h2>
+    <p class="section-subtitle">从不同维度，走进非遗传承的世界</p>
+
+    <div class="module-grid">
+      {modules.map(module => (
+        <a href={module.href} class={`module-card module-${module.id}`} aria-label={`进入${module.name}模块`}>
+          <div class="module-icon" aria-hidden="true">{module.icon}</div>
+          <div class="module-image-wrapper">
+            <img
+              src={module.image}
+              alt={`${module.name}模块入口图`}
+              class="module-image"
+              loading="lazy"
+              onerror="this.style.display='none'"
+            />
+          </div>
+          <div class="module-content">
+            <span class="module-subtitle">{module.subtitle}</span>
+            <h3 class="module-name">{module.name}</h3>
+            <p class="module-description">{module.description}</p>
+            <span class="module-cta">进入探索 →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .module-section {
+    background-color: var(--color-bg-light);
+  }
+
+  .module-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+  }
+
+  .module-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-light);
+    border: 1px solid rgba(139, 69, 19, 0.2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition:
+      transform 0.35s ease,
+      box-shadow 0.35s ease,
+      border-color 0.35s ease;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  .module-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--color-primary);
+    box-shadow: 0 16px 40px rgba(139, 69, 19, 0.15);
+  }
+
+  .module-icon {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    font-size: 1.75rem;
+    z-index: 2;
+    opacity: 0.8;
+  }
+
+  .module-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-bg-medium) 0%, var(--color-bg-dark) 100%);
+  }
+
+  .module-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .module-card:hover .module-image {
+    transform: scale(1.08);
+  }
+
+  .module-content {
+    padding: var(--spacing-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .module-subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .module-name {
+    font-family: var(--font-heading);
+    font-size: 1.375rem;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .module-description {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+    flex: 1;
+  }
+
+  .module-cta {
+    font-size: 0.875rem;
+    color: var(--color-accent);
+    font-weight: 700;
+    transition: color 0.3s ease;
+  }
+
+  .module-card:hover .module-cta {
+    color: var(--color-primary);
+  }
+
+  /* 响应式 */
+  @media (max-width: 1024px) {
+    .module-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .module-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * 模块入口卡片滚动入场动画
+   * 四张卡片依次从下方滑入并淡入
+   */
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    gsap.to(".module-card", {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      stagger: 0.12,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: ".module-grid",
+        start: "top 78%",
+        toggleActions: "play none none none"
+      }
+    });
+  });
+</script>

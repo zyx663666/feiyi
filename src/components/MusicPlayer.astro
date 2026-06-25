@@ -1,0 +1,355 @@
+---
+/**
+ * 音乐播放器组件
+ * 基于 APlayer + MetingJS，支持网易云/QQ音乐平台
+ * 默认折叠为右下角小按钮，点击展开播放器
+ * 音乐列表：非遗主题相关（古风、传统器乐）
+ */
+---
+
+<!-- 音乐播放器容器 -->
+<div class="music-player-wrap" id="music-player-wrap">
+  <!-- 折叠态：浮动按钮 -->
+  <button
+    class="music-fab"
+    id="music-fab"
+    aria-label="打开音乐播放器"
+    aria-expanded="false"
+    type="button"
+  >
+    <svg class="music-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5l12-2v13"></path>
+      <circle cx="6" cy="18" r="3"></circle>
+      <circle cx="18" cy="16" r="3"></circle>
+    </svg>
+    <span class="music-pulse"></span>
+  </button>
+
+  <!-- 展开态：播放器面板 -->
+  <div class="music-panel" id="music-panel" hidden>
+    <div class="music-panel-header">
+      <span class="music-panel-title">非遗乐韵</span>
+      <button class="music-panel-close" id="music-close" aria-label="收起播放器" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- MetingJS 播放器挂载点 -->
+    <div class="music-container" id="music-container">
+      <!-- APlayer 容器，由 MetingJS 自动渲染 -->
+      <meting-js
+        server="netease"
+        type="playlist"
+        id="7373225287"
+        fixed="false"
+        mini="false"
+        autoplay="false"
+        theme="var(--color-primary)"
+        loop="all"
+        order="list"
+        preload="auto"
+        volume="0.5"
+        mutex="true"
+        list-folded="false"
+        list-max-height="240px"
+      >
+      </meting-js>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* 播放器外层 */
+  .music-player-wrap {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1050;
+  }
+
+  /* 浮动按钮 */
+  .music-fab {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(196, 163, 90, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .music-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45),
+                0 0 0 2px var(--color-secondary);
+  }
+
+  .music-fab[aria-expanded="true"] {
+    transform: scale(0.9);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .music-icon {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 播放脉冲动画 */
+  .music-pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--color-secondary);
+    animation: musicPulse 2s ease-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes musicPulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+
+  /* 播放器面板 */
+  .music-panel {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 340px;
+    max-width: calc(100vw - 48px);
+    background-color: rgba(26, 26, 46, 0.98);
+    border: 1px solid rgba(196, 163, 90, 0.3);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .music-panel.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  /* 面板头部 */
+  .music-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: #fff;
+  }
+
+  .music-panel-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .music-panel-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .music-panel-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* MetingJS 容器 */
+  .music-container {
+    padding: 0;
+    max-height: 400px;
+    overflow: hidden;
+  }
+
+  /* 覆盖 APlayer 样式以适配非遗主题 */
+  .music-container :global(.aplayer) {
+    background: transparent !important;
+    font-family: var(--font-body) !important;
+    box-shadow: none !important;
+  }
+
+  .music-container :global(.aplayer-body) {
+    background: rgba(45, 45, 68, 0.6) !important;
+  }
+
+  .music-container :global(.aplayer-info) {
+    color: var(--color-text-light) !important;
+  }
+
+  .music-container :global(.aplayer-info .aplayer-music) {
+    margin-bottom: 0;
+  }
+
+  .music-container :global(.aplayer-info .aplayer-title) {
+    color: var(--color-secondary) !important;
+  }
+
+  .music-container :global(.aplayer-info .aplayer-author) {
+    color: var(--color-text-light) !important;
+    opacity: 0.7;
+  }
+
+  .music-container :global(.aplayer-list) {
+    background: rgba(26, 26, 46, 0.8) !important;
+  }
+
+  .music-container :global(.aplayer-list ol li) {
+    color: var(--color-text-light) !important;
+    border-top: 1px solid rgba(196, 163, 90, 0.1) !important;
+  }
+
+  .music-container :global(.aplayer-list ol li:hover) {
+    background: rgba(196, 163, 90, 0.15) !important;
+  }
+
+  .music-container :global(.aplayer-list ol li.aplayer-list-light) {
+    background: rgba(196, 163, 90, 0.2) !important;
+  }
+
+  .music-container :global(.aplayer-list ol li .aplayer-list-title) {
+    color: var(--color-text-light) !important;
+  }
+
+  .music-container :global(.aplayer-list ol li .aplayer-list-author) {
+    color: var(--color-text-light) !important;
+    opacity: 0.6;
+  }
+
+  .music-container :global(.aplayer-pic) {
+    border-radius: var(--radius-sm) !important;
+  }
+
+  /* 移动端适配 */
+  @media (max-width: 480px) {
+    .music-player-wrap {
+      bottom: 16px;
+      right: 16px;
+    }
+
+    .music-panel {
+      width: calc(100vw - 32px);
+    }
+  }
+</style>
+
+<script>
+  /**
+   * 音乐播放器交互
+   * 1. 动态加载 APlayer + MetingJS 脚本
+   * 2. 控制面板展开/收起
+   * 3. 播放状态时浮动按钮显示脉冲动画
+   */
+  const APLAYER_CSS = "https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css";
+  const APLAYER_JS = "https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js";
+  const METING_JS = "https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js";
+
+  const fab = document.getElementById("music-fab");
+  const panel = document.getElementById("music-panel");
+  const closeBtn = document.getElementById("music-close");
+  const container = document.getElementById("music-container");
+
+  let scriptsLoaded = false;
+
+  /** 动态加载脚本 */
+  const loadScripts = async (): Promise<void> => {
+    if (scriptsLoaded) return;
+
+    // 加载 CSS
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = APLAYER_CSS;
+    document.head.appendChild(link);
+
+    // 加载 APlayer JS
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = APLAYER_JS;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("APlayer 加载失败"));
+      document.head.appendChild(script);
+    });
+
+    // 加载 MetingJS
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = METING_JS;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("MetingJS 加载失败"));
+      document.head.appendChild(script);
+    });
+
+    scriptsLoaded = true;
+  };
+
+  /** 打开播放器 */
+  const openPlayer = async () => {
+    fab?.setAttribute("aria-expanded", "true");
+    panel?.removeAttribute("hidden");
+
+    // 延迟添加 open 类触发过渡
+    requestAnimationFrame(() => {
+      panel?.classList.add("open");
+    });
+
+    // 首次打开时加载脚本
+    if (!scriptsLoaded) {
+      try {
+        await loadScripts();
+      } catch (err) {
+        console.error("音乐播放器加载失败:", err);
+        if (container) {
+          container.innerHTML = '<p style="padding: 24px; text-align: center; color: var(--color-text-light); font-size: 0.875rem;">音乐加载失败，请检查网络连接</p>';
+        }
+      }
+    }
+  };
+
+  /** 关闭播放器 */
+  const closePlayer = () => {
+    panel?.classList.remove("open");
+    fab?.setAttribute("aria-expanded", "false");
+    setTimeout(() => {
+      panel?.setAttribute("hidden", "");
+    }, 300);
+  };
+
+  /** 切换开合 */
+  const togglePlayer = () => {
+    const isOpen = panel?.classList.contains("open");
+    if (isOpen) closePlayer();
+    else openPlayer();
+  };
+
+  // 事件绑定
+  fab?.addEventListener("click", togglePlayer);
+  closeBtn?.addEventListener("click", closePlayer);
+</script>

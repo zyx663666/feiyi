@@ -1,0 +1,610 @@
+---
+/**
+ * 陶瓷技艺项目页
+ * 展示陶瓷历史源流、代表作品、制作流程（AI_Animation动画）、文化内涵
+ * 联动入口：摄影/3D/视频
+ */
+import Layout from "../../components/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+import Footer from "../../components/Footer.astro";
+---
+
+<Layout title="陶瓷技艺 - 非遗传承">
+  <Navigation />
+
+  <!-- Hero 区：标题与简介 -->
+  <section class="craft-hero" id="top">
+    <div class="container">
+      <p class="craft-eyebrow">非遗 · 陶瓷烧造技艺</p>
+      <h1 class="craft-title">陶瓷技艺</h1>
+      <p class="craft-subtitle">取大地之土，经火炼成器</p>
+      <p class="craft-intro">
+        从新石器时代的彩陶盆，到唐宋的青瓷碗，再到明清的青花瓶。<br />
+        每一件瓷器都是"土与火的对话"，凝结着千年的匠心与智慧。
+      </p>
+      <a href="#history" class="scroll-hint" aria-label="向下浏览">
+        <span>向下浏览</span>
+        <span class="arrow" aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 历史源流 -->
+  <section class="section craft-section" id="history">
+    <div class="container">
+      <h2 class="section-title">历史源流</h2>
+      <p class="section-subtitle">八千年窑火不熄，泥土涅槃成器</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-era">新石器时代</div>
+          <div class="timeline-content">
+            <h3>陶器起源</h3>
+            <p>约一万年前，先民开始用黏土制作简单陶器。河姆渡遗址出土的陶器，标志着陶瓷艺术的最初起源。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">商周时期</div>
+          <div class="timeline-content">
+            <h3>原始青瓷</h3>
+            <p>出现了原始青瓷，被认为是世界上最早的瓷器。东汉时期，绍兴上虞第一次制成了成熟的瓷器。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">唐宋时期</div>
+          <div class="timeline-content">
+            <h3>南青北白</h3>
+            <p>形成南青北白的制瓷格局——越窑青瓷、邢窑白瓷。宋元时期进入繁荣，形成"五大名窑"：汝、官、哥、钧、定。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">元明清时期</div>
+          <div class="timeline-content">
+            <h3>景德镇鼎盛</h3>
+            <p>景德镇成为御窑，青花瓷、彩绘瓷盛极一时。明朝的釉里红、成化斗彩，清朝的郎窑红、粉彩，皆为传世珍品。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 代表作品 -->
+  <section class="section craft-section section-alt" id="works">
+    <div class="container">
+      <h2 class="section-title">代表作品</h2>
+      <p class="section-subtitle">泥土与火焰凝结的传世之美</p>
+
+      <div class="works-grid">
+        <article class="work-card">
+          <div class="work-image work-image-1" aria-hidden="true">
+            <span class="work-placeholder">青花</span>
+          </div>
+          <div class="work-body">
+            <h3>元青花四爱图梅瓶</h3>
+            <p class="work-era">元代 · 景德镇窑</p>
+            <p>青花瓷以钴料绘纹，白底蓝花，淡雅色调契合文人意境。此瓶是最早的青花完整器之一。</p>
+          </div>
+        </article>
+
+        <article class="work-card">
+          <div class="work-image work-image-2" aria-hidden="true">
+            <span class="work-placeholder">汝窑</span>
+          </div>
+          <div class="work-body">
+            <h3>汝窑天青釉</h3>
+            <p class="work-era">宋代 · 五大名窑之首</p>
+            <p>汝瓷擅用玛瑙入釉，釉色素静典雅，"青如天、面如玉、质如乳、声如磬"，烧制难度极高。</p>
+          </div>
+        </article>
+
+        <article class="work-card">
+          <div class="work-image work-image-3" aria-hidden="true">
+            <span class="work-placeholder">粉彩</span>
+          </div>
+          <div class="work-body">
+            <h3>清乾隆粉彩百花尊</h3>
+            <p class="work-era">清代 · 景德镇御窑</p>
+            <p>粉彩受西洋珐琅影响，色调柔软粉化，百花满地，富丽堂皇，代表清代制瓷工艺巅峰。</p>
+          </div>
+        </article>
+
+        <article class="work-card">
+          <div class="work-image work-image-4" aria-hidden="true">
+            <span class="work-placeholder">建盏</span>
+          </div>
+          <div class="work-body">
+            <h3>建窑建盏</h3>
+            <p class="work-era">宋代 · 福建建阳</p>
+            <p>黑釉瓷的杰出代表，结晶釉因烧成技术不同产生兔毫、油滴等釉色，为宋代皇室御用茶器。</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 制作流程（AI_Animation 动画） -->
+  <section class="section craft-section" id="process">
+    <div class="container">
+      <h2 class="section-title">制作流程</h2>
+      <p class="section-subtitle">"共计一坯之力，过手七十二，方克成器" ——《天工开物》</p>
+
+      <div class="animation-wrapper">
+        <iframe
+          class="process-animation"
+          src="/animations/ceramic-process.html"
+          title="陶瓷制作流程动画"
+          loading="lazy"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>
+
+      <div class="process-steps">
+        <div class="process-step-card">
+          <span class="step-number">01</span>
+          <h3>揉泥</h3>
+          <p>精选高岭土，反复揉炼排出气泡，使泥性均匀柔韧。陈腐越久，柔韧性越好，拉坯时不易开裂。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">02</span>
+          <h3>拉坯</h3>
+          <p>泥团置于轮盘，双手提拉，"三提三压"塑出器型。力度要匀，如"抱婴儿"般顺泥之脾气。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">03</span>
+          <h3>修坯</h3>
+          <p>以竹刀修整厚薄曲直，景德镇薄胎瓷厚度仅0.5毫米，透光可见指影，全凭手感"摸到泥的骨头"。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">04</span>
+          <h3>上釉</h3>
+          <p>石英、长石制成的釉料覆盖坯面，既保护瓷体，又赋予玻璃般光泽，更具美感。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">05</span>
+          <h3>烧窑</h3>
+          <p>千度高温，泥土涅槃。窑火之中，釉色流转，化而为瓷，光润如玉。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 文化内涵 -->
+  <section class="section craft-section section-alt" id="culture">
+    <div class="container">
+      <h2 class="section-title">文化内涵</h2>
+      <p class="section-subtitle">瓷以载道，器以传情</p>
+
+      <div class="culture-grid">
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">土</div>
+          <h3>水土之合</h3>
+          <p>陶瓷以水土为基，水润土性，土承水形。水土交融间，化作万千器型，体现"道法自然"的哲学。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">火</div>
+          <h3>窑火涅槃</h3>
+          <p>千度高温，泥土化瓷。火的淬炼，象征匠人坚守与蜕变，"浴火重生"的东方智慧。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">雅</div>
+          <h3>文人意境</h3>
+          <p>青花的淡雅、汝窑的天青，契合中国文人山水意境。瓷以载道，承载东方审美与精神追求。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">通</div>
+          <h3>文明互鉴</h3>
+          <p>瓷器沿丝绸之路远销海外，"China"即瓷之意。一抹青花，连接东西，成为中华文明的世界名片。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 联动入口 -->
+  <section class="section craft-section" id="explore">
+    <div class="container">
+      <h2 class="section-title">深度探索</h2>
+      <p class="section-subtitle">从不同维度，继续走进陶瓷世界</p>
+
+      <div class="explore-grid">
+        <a href="/gallery?category=ceramic" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">摄影</div>
+          <h3>陶瓷摄影</h3>
+          <p>高清影像记录陶瓷之美，从器型到釉色，尽收眼底。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+        <a href="/model?category=ceramic" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">3D</div>
+          <h3>3D 模型</h3>
+          <p>360度旋转观赏，细品陶瓷的每一处曲线与纹饰。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+        <a href="/video?category=ceramic" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">视频</div>
+          <h3>科普视频</h3>
+          <p>影像记录匠人手作，听他们讲述泥土与火焰的故事。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Hero 区 */
+  .craft-hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: var(--nav-height);
+    background: linear-gradient(135deg, rgba(139, 90, 43, 0.15) 0%, rgba(26, 26, 46, 0.8) 100%);
+    position: relative;
+  }
+
+  .craft-eyebrow {
+    font-size: 0.875rem;
+    letter-spacing: 6px;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+    text-transform: uppercase;
+  }
+
+  .craft-title {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+
+  .craft-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .craft-intro {
+    font-size: 1.0625rem;
+    line-height: 1.9;
+    color: rgba(245, 240, 232, 0.8);
+    max-width: 640px;
+    margin: 0 auto var(--spacing-xl);
+  }
+
+  .scroll-hint {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    transition: color 0.3s ease;
+  }
+
+  .scroll-hint:hover {
+    color: var(--color-accent);
+  }
+
+  .scroll-hint .arrow {
+    font-size: 1.5rem;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* 通用 section */
+  .craft-section {
+    padding: var(--spacing-2xl) 0;
+  }
+
+  .section-alt {
+    background-color: rgba(26, 26, 46, 0.5);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-text-light);
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 1.0625rem;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  /* 时间线 */
+  .timeline {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--color-accent), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 0 4px rgba(196, 163, 90, 0.2);
+  }
+
+  .timeline-era {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    letter-spacing: 2px;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .timeline-content h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .timeline-content p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  /* 代表作品 */
+  .works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .work-card {
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .work-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-accent);
+  }
+
+  .work-image {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: rgba(245, 240, 232, 0.4);
+  }
+
+  .work-image-1 { background: linear-gradient(135deg, #1e3a5f, #2c5282); }
+  .work-image-2 { background: linear-gradient(135deg, #4a5c6a, #7a8a95); }
+  .work-image-3 { background: linear-gradient(135deg, #8b4a6f, #c4719c); }
+  .work-image-4 { background: linear-gradient(135deg, #2d2d2d, #4a4a4a); }
+
+  .work-body {
+    padding: var(--spacing-lg);
+  }
+
+  .work-body h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .work-era {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .work-body p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 动画区 */
+  .animation-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto var(--spacing-2xl);
+    aspect-ratio: 16 / 9;
+    border: 1px solid rgba(196, 163, 90, 0.3);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #1A1A2E;
+  }
+
+  .process-animation {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* 工序卡片 */
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .process-step-card {
+    background: rgba(26, 26, 46, 0.4);
+    border-left: 3px solid var(--color-accent);
+    padding: var(--spacing-lg);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  .step-number {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .process-step-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .process-step-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 文化内涵 */
+  .culture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .culture-card {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: rgba(26, 26, 46, 0.4);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(196, 163, 90, 0.15);
+    transition: border-color 0.3s ease;
+  }
+
+  .culture-card:hover {
+    border-color: var(--color-accent);
+  }
+
+  .culture-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+  }
+
+  .culture-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .culture-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 联动入口 */
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .explore-card {
+    position: relative;
+    display: block;
+    padding: var(--spacing-xl);
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+  }
+
+  .explore-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-4px);
+  }
+
+  .explore-icon {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: rgba(196, 163, 90, 0.15);
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .explore-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .explore-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .explore-arrow {
+    color: var(--color-accent);
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .explore-card:hover .explore-arrow {
+    transform: translateX(8px);
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .craft-title {
+      font-size: 3rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+    }
+
+    .timeline {
+      padding-left: 1.5rem;
+    }
+  }
+</style>

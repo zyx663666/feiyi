@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>刺绣针法演示动画 - 非遗传承</title>
+  <style>
+    /**
+     * 刺绣针法演示动画
+     * 展示平针、套针、滚针、打籽针、乱针绣五种针法
+     * 以丝线在绣布上穿梭的动态形式呈现
+     */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1A1A2E;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 绣布纹理背景 */
+    #silk-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* 针法信息 */
+    .stitch-info {
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      color: #F5F0E8;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .stitch-num {
+      font-size: 14px;
+      letter-spacing: 8px;
+      color: #C4A35A;
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .stitch-title {
+      font-size: 42px;
+      font-weight: 700;
+      color: #F5F0E8;
+      text-shadow: 0 0 20px rgba(196, 163, 90, 0.6);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease 0.2s forwards;
+    }
+
+    .stitch-desc {
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(245, 240, 232, 0.75);
+      opacity: 0;
+      animation: fadeIn 0.8s ease 0.4s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* 绣制画布 */
+    .embroidery-stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 400px;
+      z-index: 5;
+      border: 1px solid rgba(196, 163, 90, 0.2);
+      background: rgba(245, 240, 232, 0.03);
+    }
+
+    #embroidery-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 进度指示 */
+    .progress-bar {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(245, 240, 232, 0.2);
+      border: 1px solid rgba(196, 163, 90, 0.4);
+      transition: all 0.4s ease;
+    }
+
+    .progress-dot.active {
+      background: #C4A35A;
+      box-shadow: 0 0 12px rgba(196, 163, 90, 0.8);
+      transform: scale(1.3);
+    }
+
+    .progress-dot.done {
+      background: rgba(196, 163, 90, 0.5);
+    }
+
+    .step-labels {
+      position: absolute;
+      bottom: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 24px;
+      z-index: 10;
+      font-size: 13px;
+      color: rgba(245, 240, 232, 0.6);
+    }
+
+    .step-label.active {
+      color: #C4A35A;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <canvas id="silk-canvas"></canvas>
+
+    <div class="stitch-info">
+      <div class="stitch-num" id="stitch-num">针法 一</div>
+      <h2 class="stitch-title" id="stitch-title">平针</h2>
+      <p class="stitch-desc" id="stitch-desc">针脚整齐排列，线迹均匀，如丝线写就的工整笔画</p>
+    </div>
+
+    <div class="embroidery-stage">
+      <canvas id="embroidery-canvas" width="1000" height="800"></canvas>
+    </div>
+
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="step-labels" id="step-labels"></div>
+  </div>
+
+  <script>
+    /**
+     * 刺绣针法演示动画
+     * 
+     * 五种针法循环演示：
+     * 1. 平针 - 整齐排列的基础针法
+     * 2. 套针 - 分层叠加，色彩过渡
+     * 3. 滚针 - 折线勾勒轮廓
+     * 4. 打籽针 - 结粒形成立体点缀
+     * 5. 乱针绣 - 交叉线条模仿油画笔触
+     */
+
+    const stitches = [
+      {
+        num: '针法 一',
+        title: '平针',
+        desc: '针脚整齐排列，线迹均匀，如丝线写就的工整笔画',
+        duration: 4500,
+        color: '#E8B4B8'
+      },
+      {
+        num: '针法 二',
+        title: '套针',
+        desc: '分层套色，短针衔接，色彩自然过渡如花瓣渐变',
+        duration: 5000,
+        color: '#F4C2A1'
+      },
+      {
+        num: '针法 三',
+        title: '滚针',
+        desc: '折线相连，第二针藏于第一针之下，勾勒流畅轮廓',
+        duration: 4500,
+        color: '#A8C8A8'
+      },
+      {
+        num: '针法 四',
+        title: '打籽针',
+        desc: '线绕针尖形成结粒，立体凸起，如花蕊点缀',
+        duration: 4500,
+        color: '#F4D03F'
+      },
+      {
+        num: '针法 五',
+        title: '乱针绣',
+        desc: '长短线条交叉重叠，模仿油画笔触，表现光影层次',
+        duration: 5000,
+        color: '#9B6B9E'
+      }
+    ];
+
+    const progressBar = document.getElementById('progress-bar');
+    const stepLabels = document.getElementById('step-labels');
+    stitches.forEach(stitch => {
+      const dot = document.createElement('div');
+      dot.className = 'progress-dot';
+      progressBar.appendChild(dot);
+
+      const label = document.createElement('div');
+      label.className = 'step-label';
+      label.textContent = stitch.title;
+      stepLabels.appendChild(label);
+    });
+
+    /* ============================================
+     * 背景画布：丝绸光泽粒子
+     * ============================================ */
+    const silkCanvas = document.getElementById('silk-canvas');
+    const silkCtx = silkCanvas.getContext('2d');
+    let silkDpr = window.devicePixelRatio || 1;
+
+    function resizeSilk() {
+      silkDpr = window.devicePixelRatio || 1;
+      silkCanvas.width = window.innerWidth * silkDpr;
+      silkCanvas.height = window.innerHeight * silkDpr;
+      silkCtx.scale(silkDpr, silkDpr);
+    }
+    resizeSilk();
+    window.addEventListener('resize', resizeSilk);
+
+    /* 丝绸光泽粒子 */
+    class SilkParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * window.innerWidth;
+        this.y = Math.random() * window.innerHeight;
+        this.radius = 1 + Math.random() * 2;
+        this.life = 0;
+        this.maxLife = 300 + Math.random() * 400;
+        this.vx = (Math.random() - 0.5) * 0.2;
+        this.vy = (Math.random() - 0.5) * 0.2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life++;
+        if (this.life > this.maxLife) this.reset();
+      }
+      draw() {
+        const alpha = Math.sin((this.life / this.maxLife) * Math.PI) * 0.3;
+        silkCtx.beginPath();
+        silkCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        silkCtx.fillStyle = `rgba(196, 163, 90, ${alpha})`;
+        silkCtx.fill();
+      }
+    }
+
+    const silkParticles = [];
+    for (let i = 0; i < 60; i++) silkParticles.push(new SilkParticle());
+
+    /* ============================================
+     * 刺绣画布
+     * ============================================ */
+    const embCanvas = document.getElementById('embroidery-canvas');
+    const eCtx = embCanvas.getContext('2d');
+    const EW = embCanvas.width;
+    const EH = embCanvas.height;
+
+    let currentStitch = 0;
+    let stitchStartTime = 0;
+
+    /* 已绘制的针迹（持久化） */
+    let drawnStitches = [];
+
+    /* 绘制绣布纹理 */
+    function drawFabric() {
+      eCtx.fillStyle = 'rgba(245, 240, 232, 0.05)';
+      eCtx.fillRect(0, 0, EW, EH);
+
+      /* 经纬线 */
+      eCtx.strokeStyle = 'rgba(196, 163, 90, 0.08)';
+      eCtx.lineWidth = 1;
+      for (let x = 0; x < EW; x += 20) {
+        eCtx.beginPath();
+        eCtx.moveTo(x, 0);
+        eCtx.lineTo(x, EH);
+        eCtx.stroke();
+      }
+      for (let y = 0; y < EH; y += 20) {
+        eCtx.beginPath();
+        eCtx.moveTo(0, y);
+        eCtx.lineTo(EW, y);
+        eCtx.stroke();
+      }
+    }
+
+    /* 绘制平针：整齐排列的平行线 */
+    function drawFlatStitch(t) {
+      const progress = t / stitches[0].duration;
+      const color = stitches[0].color;
+
+      /* 一行行绣制 */
+      const rows = 8;
+      const stitchesPerRow = 10;
+      const totalStitches = rows * stitchesPerRow;
+      const currentStitchIdx = Math.floor(progress * totalStitches);
+
+      for (let i = 0; i < Math.min(currentStitchIdx, totalStitches); i++) {
+        const row = Math.floor(i / stitchesPerRow);
+        const col = i % stitchesPerRow;
+        const x1 = 100 + col * 80;
+        const x2 = x1 + 60;
+        const y = 100 + row * 70;
+
+        /* 针线 */
+        eCtx.beginPath();
+        eCtx.moveTo(x1, y);
+        eCtx.lineTo(x2, y);
+        eCtx.strokeStyle = color;
+        eCtx.lineWidth = 4;
+        eCtx.lineCap = 'round';
+        eCtx.shadowColor = color;
+        eCtx.shadowBlur = 8;
+        eCtx.stroke();
+        eCtx.shadowBlur = 0;
+
+        /* 针孔 */
+        eCtx.beginPath();
+        eCtx.arc(x1, y, 2, 0, Math.PI * 2);
+        eCtx.arc(x2, y, 2, 0, Math.PI * 2);
+        eCtx.fillStyle = 'rgba(60, 40, 20, 0.6)';
+        eCtx.fill();
+      }
+    }
+
+    /* 绘制套针：分层叠加的花瓣 */
+    function drawSatinStitch(t) {
+      const progress = t / stitches[1].duration;
+      const color = stitches[1].color;
+
+      /* 花瓣形状 */
+      const centerX = EW / 2;
+      const centerY = EH / 2;
+      const petalCount = 6;
+
+      for (let p = 0; p < petalCount; p++) {
+        const angle = (p / petalCount) * Math.PI * 2;
+        const layers = 5;
+        const currentLayer = Math.floor(progress * layers * petalCount);
+
+        for (let layer = 0; layer < layers; layer++) {
+          const layerProgress = (p * layers + layer) / (petalCount * layers);
+          if (layerProgress > progress) continue;
+
+          const radius = 80 + layer * 25;
+          const petalLen = 60 - layer * 8;
+
+          for (let s = 0; s < 8; s++) {
+            const sAngle = angle + (s - 4) * 0.08;
+            const x1 = centerX + Math.cos(sAngle) * radius;
+            const y1 = centerY + Math.sin(sAngle) * radius;
+            const x2 = centerX + Math.cos(sAngle) * (radius + petalLen);
+            const y2 = centerY + Math.sin(sAngle) * (radius + petalLen);
+
+            eCtx.beginPath();
+            eCtx.moveTo(x1, y1);
+            eCtx.lineTo(x2, y2);
+            /* 颜色渐变 */
+            const hue = 20 + layer * 5;
+            eCtx.strokeStyle = `hsl(${hue}, 70%, ${70 - layer * 8}%)`;
+            eCtx.lineWidth = 3;
+            eCtx.lineCap = 'round';
+            eCtx.shadowColor = color;
+            eCtx.shadowBlur = 6;
+            eCtx.stroke();
+            eCtx.shadowBlur = 0;
+          }
+        }
+      }
+
+      /* 花蕊 */
+      if (progress > 0.8) {
+        eCtx.beginPath();
+        eCtx.arc(centerX, centerY, 15, 0, Math.PI * 2);
+        eCtx.fillStyle = '#F4D03F';
+        eCtx.shadowColor = '#F4D03F';
+        eCtx.shadowBlur = 15;
+        eCtx.fill();
+        eCtx.shadowBlur = 0;
+      }
+    }
+
+    /* 绘制滚针：折线勾勒 */
+    function drawOutlineStitch(t) {
+      const progress = t / stitches[2].duration;
+      const color = stitches[2].color;
+
+      /* 蝴蝶轮廓点 */
+      const points = [];
+      const cx = EW / 2;
+      const cy = EH / 2;
+      /* 左翅 */
+      for (let a = 0; a <= Math.PI; a += 0.1) {
+        points.push({
+          x: cx - 150 + Math.cos(a) * 100,
+          y: cy + Math.sin(a) * 80
+        });
+      }
+      /* 右翅 */
+      for (let a = Math.PI; a <= Math.PI * 2; a += 0.1) {
+        points.push({
+          x: cx + 150 + Math.cos(a) * 100,
+          y: cy + Math.sin(a) * 80
+        });
+      }
+
+      const currentIdx = Math.floor(progress * points.length);
+
+      /* 绘制折线 */
+      eCtx.beginPath();
+      eCtx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < Math.min(currentIdx, points.length); i++) {
+        eCtx.lineTo(points[i].x, points[i].y);
+      }
+      eCtx.strokeStyle = color;
+      eCtx.lineWidth = 3;
+      eCtx.lineCap = 'round';
+      eCtx.lineJoin = 'round';
+      eCtx.shadowColor = color;
+      eCtx.shadowBlur = 8;
+      eCtx.stroke();
+      eCtx.shadowBlur = 0;
+
+      /* 针点 */
+      for (let i = 0; i < Math.min(currentIdx, points.length); i += 3) {
+        eCtx.beginPath();
+        eCtx.arc(points[i].x, points[i].y, 2, 0, Math.PI * 2);
+        eCtx.fillStyle = 'rgba(60, 40, 20, 0.6)';
+        eCtx.fill();
+      }
+    }
+
+    /* 绘制打籽针：结粒点缀 */
+    function drawSeedStitch(t) {
+      const progress = t / stitches[3].duration;
+      const color = stitches[3].color;
+
+      /* 散布的结粒 */
+      const seeds = [];
+      const cx = EW / 2;
+      const cy = EH / 2;
+      for (let i = 0; i < 60; i++) {
+        const angle = (i / 60) * Math.PI * 4;
+        const radius = 20 + i * 5;
+        seeds.push({
+          x: cx + Math.cos(angle) * radius,
+          y: cy + Math.sin(angle) * radius * 0.7,
+          size: 4 + Math.random() * 4
+        });
+      }
+
+      const currentIdx = Math.floor(progress * seeds.length);
+
+      for (let i = 0; i < Math.min(currentIdx, seeds.length); i++) {
+        const seed = seeds[i];
+        /* 结粒：圆形带高光 */
+        const grad = eCtx.createRadialGradient(
+          seed.x - 1, seed.y - 1, 0,
+          seed.x, seed.y, seed.size
+        );
+        grad.addColorStop(0, '#FFF5B8');
+        grad.addColorStop(0.5, color);
+        grad.addColorStop(1, '#8B6914');
+
+        eCtx.beginPath();
+        eCtx.arc(seed.x, seed.y, seed.size, 0, Math.PI * 2);
+        eCtx.fillStyle = grad;
+        eCtx.shadowColor = color;
+        eCtx.shadowBlur = 6;
+        eCtx.fill();
+        eCtx.shadowBlur = 0;
+      }
+    }
+
+    /* 绘制乱针绣：交叉线条 */
+    function drawRandomStitch(t) {
+      const progress = t / stitches[4].duration;
+      const color = stitches[4].color;
+
+      /* 生成随机交叉线 */
+      const lines = [];
+      const cx = EW / 2;
+      const cy = EH / 2;
+      for (let i = 0; i < 150; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 180;
+        const len = 20 + Math.random() * 40;
+        lines.push({
+          x1: cx + Math.cos(angle) * dist,
+          y1: cy + Math.sin(angle) * dist,
+          x2: cx + Math.cos(angle) * (dist + len),
+          y2: cy + Math.sin(angle) * (dist + len),
+          hue: 280 + Math.random() * 60,
+          width: 1 + Math.random() * 2
+        });
+      }
+
+      const currentIdx = Math.floor(progress * lines.length);
+
+      for (let i = 0; i < Math.min(currentIdx, lines.length); i++) {
+        const line = lines[i];
+        eCtx.beginPath();
+        eCtx.moveTo(line.x1, line.y1);
+        eCtx.lineTo(line.x2, line.y2);
+        eCtx.strokeStyle = `hsla(${line.hue}, 60%, 60%, 0.7)`;
+        eCtx.lineWidth = line.width;
+        eCtx.lineCap = 'round';
+        eCtx.stroke();
+      }
+    }
+
+    /* 更新针法信息 */
+    function updateStitchInfo(idx) {
+      const stitch = stitches[idx];
+      const numEl = document.getElementById('stitch-num');
+      const titleEl = document.getElementById('stitch-title');
+      const descEl = document.getElementById('stitch-desc');
+
+      [numEl, titleEl, descEl].forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = '';
+      });
+
+      numEl.textContent = stitch.num;
+      titleEl.textContent = stitch.title;
+      descEl.textContent = stitch.desc;
+
+      const dots = progressBar.querySelectorAll('.progress-dot');
+      const labels = stepLabels.querySelectorAll('.step-label');
+      dots.forEach((dot, i) => {
+        dot.classList.remove('active', 'done');
+        if (i < idx) dot.classList.add('done');
+        if (i === idx) dot.classList.add('active');
+      });
+      labels.forEach((label, i) => {
+        label.classList.toggle('active', i === idx);
+      });
+    }
+
+    function animate(timestamp) {
+      if (!stitchStartTime) stitchStartTime = timestamp;
+      const elapsed = timestamp - stitchStartTime;
+
+      silkCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      eCtx.clearRect(0, 0, EW, EH);
+
+      /* 丝绸背景 */
+      silkParticles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      /* 绣布纹理 */
+      drawFabric();
+
+      /* 绘制当前针法 */
+      if (currentStitch === 0) drawFlatStitch(elapsed);
+      else if (currentStitch === 1) drawSatinStitch(elapsed);
+      else if (currentStitch === 2) drawOutlineStitch(elapsed);
+      else if (currentStitch === 3) drawSeedStitch(elapsed);
+      else if (currentStitch === 4) drawRandomStitch(elapsed);
+
+      if (elapsed > stitches[currentStitch].duration) {
+        currentStitch = (currentStitch + 1) % stitches.length;
+        stitchStartTime = timestamp;
+        updateStitchInfo(currentStitch);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    updateStitchInfo(0);
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

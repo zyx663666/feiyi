@@ -1,0 +1,1246 @@
+---
+/**
+ * 3D模型展示页
+ * 使用 Three.js 展示非遗作品3D模型
+ * 支持旋转、缩放、热点标注交互
+ */
+import Layout from "../components/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="3D模型展示 - 非遗传承">
+  <Navigation />
+
+  <main class="model-main">
+    <header class="model-header">
+      <div class="header-left">
+        <a href="/" class="back-btn" aria-label="返回首页">←</a>
+        <div class="title-area">
+          <h1 class="model-title">3D 作品展示</h1>
+          <p class="model-subtitle">千年器物 · 触手可及</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="header-btn" id="reset-view-btn" title="重置视角">⟲</button>
+        <button class="header-btn" id="auto-rotate-btn" title="自动旋转">↻</button>
+        <button class="header-btn" id="fullscreen-btn" title="全屏">⛶</button>
+      </div>
+    </header>
+
+    <div class="model-body">
+      <!-- 左栏：作品列表 -->
+      <aside class="panel model-list-panel">
+        <h2 class="panel-title">展品列表</h2>
+        <div class="model-list">
+          <div class="model-card active" data-model="vase">
+            <div class="model-card-icon">🏺</div>
+            <div class="model-card-info">
+              <h3 class="model-card-name">青花龙纹罐</h3>
+              <p class="model-card-era">元代 · 景德镇</p>
+            </div>
+          </div>
+          <div class="model-card" data-model="teapot">
+            <div class="model-card-icon">🫖</div>
+            <div class="model-card-info">
+              <h3 class="model-card-name">紫砂茶壶</h3>
+              <p class="model-card-era">明代 · 宜兴</p>
+            </div>
+          </div>
+          <div class="model-card" data-model="bowl">
+            <div class="model-card-icon">🥣</div>
+            <div class="model-card-info">
+              <h3 class="model-card-name">汝窑天青碗</h3>
+              <p class="model-card-era">宋代 · 汝州</p>
+            </div>
+          </div>
+          <div class="model-card" data-model="woodfish">
+            <div class="model-card-icon">🐟</div>
+            <div class="model-card-info">
+              <h3 class="model-card-name">木雕鱼</h3>
+              <p class="model-card-era">清代 · 东阳</p>
+            </div>
+          </div>
+          <div class="model-card" data-model="incense">
+            <div class="model-card-icon">🪔</div>
+            <div class="model-card-info">
+              <h3 class="model-card-name">博山炉</h3>
+              <p class="model-card-era">汉代 · 铜器</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中栏：3D展示区 -->
+      <section class="panel canvas-panel">
+        <div class="canvas-container" id="canvas-container">
+          <canvas id="three-canvas"></canvas>
+
+          <!-- 加载提示 -->
+          <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">加载中...</p>
+          </div>
+
+          <!-- 热点标注层 -->
+          <div class="hotspots-layer" id="hotspots-layer"></div>
+
+          <!-- 操作提示 -->
+          <div class="control-hint">
+            <span class="hint-item">🖱️ 拖动旋转</span>
+            <span class="hint-item">🔍 滚轮缩放</span>
+            <span class="hint-item">👆 点击热点</span>
+          </div>
+
+          <!-- 模型信息浮层 -->
+          <div class="model-info-overlay" id="model-info-overlay">
+            <h3 class="info-name" id="info-name">青花龙纹罐</h3>
+            <p class="info-era" id="info-era">元代 · 景德镇</p>
+            <p class="info-desc" id="info-desc">元代景德镇青花瓷代表作，胎质细腻，釉色莹润，钴蓝发色明艳。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右栏：作品详情 + 热点信息 -->
+      <aside class="panel detail-panel">
+        <h2 class="panel-title">作品详情</h2>
+        <div class="detail-content" id="detail-content">
+          <div class="detail-section">
+            <h3 class="detail-section-title">基本信息</h3>
+            <div class="detail-row">
+              <span class="detail-label">名称</span>
+              <span class="detail-value" id="detail-name">青花龙纹罐</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">年代</span>
+              <span class="detail-value" id="detail-era">元代</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">产地</span>
+              <span class="detail-value" id="detail-origin">景德镇</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">材质</span>
+              <span class="detail-value" id="detail-material">瓷土+钴料</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3 class="detail-section-title">工艺特点</h3>
+            <p class="detail-text" id="detail-craft">
+              采用青花釉下彩工艺，以氧化钴为呈色剂，在素胎上绘画后施透明釉，经1300℃高温一次烧成。
+            </p>
+          </div>
+
+          <div class="detail-section">
+            <h3 class="detail-section-title">热点解读</h3>
+            <div class="hotspot-info" id="hotspot-info">
+              <p class="hotspot-placeholder">点击模型上的热点查看详细说明</p>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3 class="detail-section-title">操作说明</h3>
+            <ul class="help-list">
+              <li>鼠标拖动：旋转模型</li>
+              <li>滚轮：缩放视角</li>
+              <li>点击热点：查看工艺细节</li>
+              <li>左栏切换：选择不同展品</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  :root {
+    --clay: #8B4513;
+    --clay-light: #C4A35A;
+    --silk: #c4452a;
+    --paper: #f4f1ea;
+    --ink: #2c2418;
+    --paper-dark: #e8e0d0;
+    --gray: #7a7268;
+  }
+
+  .model-main {
+    min-height: 100vh;
+    padding-top: var(--nav-height);
+    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+  }
+
+  .model-header {
+    width: 100%;
+    max-width: 1400px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    color: var(--clay);
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover { background: var(--clay); color: white; }
+
+  .model-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.8rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .model-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 8px;
+  }
+
+  .header-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    color: var(--clay);
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .header-btn:hover { background: var(--clay); color: white; }
+  .header-btn.active { background: var(--clay); color: white; }
+
+  .model-body {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px 16px;
+    max-width: 1400px;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--paper-dark);
+  }
+
+  /* 左栏 */
+  .model-list-panel {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .model-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .model-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .model-card:hover { background: #faf8f3; }
+
+  .model-card.active {
+    border-color: var(--clay);
+    background: #faf8f3;
+  }
+
+  .model-card-icon {
+    font-size: 1.8rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper);
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .model-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .model-card-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .model-card-era {
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+
+  .model-card.active .model-card-name { color: var(--clay); }
+
+  /* 中栏 */
+  .canvas-panel {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    background: radial-gradient(ellipse at center, #faf8f3 0%, #e8e0d0 100%);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  #three-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+  }
+
+  #three-canvas:active { cursor: grabbing; }
+
+  /* 加载提示 */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(244, 241, 234, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: opacity 0.3s;
+  }
+
+  .loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--paper-dark);
+    border-top-color: var(--clay);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    font-size: 0.9rem;
+    color: var(--gray);
+  }
+
+  /* 热点层 */
+  .hotspots-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .hotspot {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(196, 69, 42, 0.9);
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .hotspot::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: rgba(196, 69, 42, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .hotspot:hover {
+    background: var(--silk);
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  .hotspot.active {
+    background: var(--clay);
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+
+  /* 操作提示 */
+  .control-hint {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    z-index: 5;
+  }
+
+  .hint-item {
+    font-size: 0.75rem;
+    color: var(--gray);
+    white-space: nowrap;
+  }
+
+  /* 模型信息浮层 */
+  .model-info-overlay {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    z-index: 5;
+    max-width: 240px;
+  }
+
+  .info-name {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.3rem;
+    color: var(--clay);
+    margin-bottom: 2px;
+  }
+
+  .info-era {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-bottom: 6px;
+  }
+
+  .info-desc {
+    font-size: 0.78rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  /* 右栏 */
+  .detail-panel {
+    width: 260px;
+    flex-shrink: 0;
+  }
+
+  .detail-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .detail-section {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--paper-dark);
+  }
+
+  .detail-section:last-child {
+    border-bottom: none;
+  }
+
+  .detail-section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--clay);
+    margin-bottom: 8px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.8rem;
+  }
+
+  .detail-label {
+    color: var(--gray);
+  }
+
+  .detail-value {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .detail-text {
+    font-size: 0.78rem;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  .hotspot-info {
+    padding: 8px;
+    background: #faf8f3;
+    border-radius: 6px;
+    min-height: 60px;
+  }
+
+  .hotspot-placeholder {
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .hotspot-detail {
+    font-size: 0.78rem;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  .hotspot-detail-title {
+    font-weight: 700;
+    color: var(--clay);
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .help-list {
+    list-style: none;
+    counter-reset: help-counter;
+    padding: 0;
+    margin: 0;
+  }
+
+  .help-list li {
+    counter-increment: help-counter;
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.8;
+    padding-left: 22px;
+    position: relative;
+  }
+
+  .help-list li::before {
+    content: counter(help-counter);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--clay);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 960px) {
+    .model-body { flex-direction: column; }
+    .model-list-panel, .detail-panel { width: 100%; }
+    .canvas-container { min-height: 400px; }
+  }
+</style>
+
+<script>
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  // ===== 展品数据 =====
+  const EXHIBITS = {
+    vase: {
+      name: '青花龙纹罐',
+      era: '元代 · 景德镇',
+      origin: '景德镇',
+      material: '瓷土+钴料',
+      desc: '元代景德镇青花龙纹罐，器型端庄，龙纹矫健，钴蓝发色浓艳，为元青花典型器。',
+      craft: '采用青花釉下彩工艺，以氧化钴为呈色剂，在素胎上绘画龙纹后施透明釉，经1300℃高温一次烧成。',
+      hotspots: [
+        { id: 'h1', pos: {x: 0, y: 1.2, z: 0.6}, title: '罐口', text: '唇口外撇，线条流畅，是元代典型造型。' },
+        { id: 'h2', pos: {x: 0.7, y: 0, z: 0.3}, title: '腹部龙纹', text: '青花龙纹矫健有力，钴蓝发色沉稳浓艳。' },
+        { id: 'h3', pos: {x: 0, y: -1.3, z: 0.5}, title: '圈足', text: '砂底无釉，可见火石红，为元青花特征。' }
+      ]
+    },
+    teapot: {
+      name: '紫砂茶壶',
+      era: '明代 · 宜兴',
+      origin: '宜兴',
+      material: '紫砂泥',
+      desc: '明代供春壶式，泥色古朴，造型典雅，为文人雅玩。',
+      craft: '采用全手工拍打泥片成型，不施釉，利用紫砂双重气孔结构保温透气。',
+      hotspots: [
+        { id: 'h1', pos: {x: 0, y: 0.8, z: 0}, title: '壶钮', text: '捏塑为瓜蒂形，便于拿取。' },
+        { id: 'h2', pos: {x: 0.9, y: 0.2, z: 0}, title: '壶嘴', text: '三弯嘴，出水流畅，断水利落。' },
+        { id: 'h3', pos: {x: -0.9, y: 0.3, z: 0}, title: '壶把', text: '端把设计，握感舒适，符合人体工学。' }
+      ]
+    },
+    bowl: {
+      name: '汝窑天青碗',
+      era: '宋代 · 汝州',
+      origin: '汝州',
+      material: '高岭土+玛瑙釉',
+      desc: '宋代五大名窑之首，天青釉色如雨后晴空，温润如玉。',
+      craft: '胎质细腻，釉中掺玛瑙末，采用支钉满釉支烧，器底有芝麻花支钉痕。',
+      hotspots: [
+        { id: 'h1', pos: {x: 0, y: 0.5, z: 0}, title: '口沿', text: '唇口微敛，釉薄处微露胎色。' },
+        { id: 'h2', pos: {x: 0.6, y: 0.1, z: 0.4}, title: '釉面', text: '天青釉色，温润如玉，开片如蝉翼。' },
+        { id: 'h3', pos: {x: 0, y: -0.3, z: 0}, title: '支钉痕', text: '圈足内芝麻花支钉痕，为汝窑特征。' }
+      ]
+    },
+    woodfish: {
+      name: '木雕鱼',
+      era: '清代 · 东阳',
+      origin: '东阳',
+      material: '樟木',
+      desc: '东阳木雕代表作，刀法圆润，鱼形生动，寓意年年有余。',
+      craft: '选用樟木为材，采用浮雕、圆雕、镂空雕相结合技法，层层雕琢。',
+      hotspots: [
+        { id: 'h1', pos: {x: 0.8, y: 0.2, z: 0.3}, title: '鱼眼', text: '圆雕点睛，神态生动，炯炯有神。' },
+        { id: 'h2', pos: {x: 0, y: 0.3, z: 0.5}, title: '鱼鳞', text: '半浮雕鳞片，层层叠叠，富有质感。' },
+        { id: 'h3', pos: {x: -0.8, y: 0, z: 0.2}, title: '鱼尾', text: '镂空雕尾鳍，飘逸灵动，如水中游动。' }
+      ]
+    },
+    incense: {
+      name: '博山炉',
+      era: '汉代 · 铜器',
+      origin: '长安',
+      material: '青铜',
+      desc: '汉代熏香器具，山形盖镂空，香烟缭绕如仙山云海。',
+      craft: '失蜡法铸造，盖镂雕山峦云气，炉体承盘，可注水储香。',
+      hotspots: [
+        { id: 'h1', pos: {x: 0, y: 1.2, z: 0}, title: '山形盖', text: '镂雕山峦叠嶂，香烟从缝隙溢出如云海。' },
+        { id: 'h2', pos: {x: 0, y: 0.2, z: 0.5}, title: '炉体', text: '半球形炉体，承托山盖，内置香料。' },
+        { id: 'h3', pos: {x: 0, y: -0.8, z: 0}, title: '承盘', text: '浅盘底座，可注热水，助发香气。' }
+      ]
+    }
+  };
+
+  // ===== Three.js 初始化 =====
+  let scene, camera, renderer, controls;
+  let currentModel = null;
+  let autoRotate = false;
+  let currentExhibitKey = 'vase';
+
+  const container = document.getElementById('canvas-container');
+  const canvas = document.getElementById('three-canvas');
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const hotspotsLayer = document.getElementById('hotspots-layer');
+
+  function initThree() {
+    // 场景
+    scene = new THREE.Scene();
+    scene.background = null;
+
+    // 相机
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    camera.position.set(0, 1, 5);
+
+    // 渲染器
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // 控制器
+    controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = 2;
+    controls.maxDistance = 10;
+    controls.target.set(0, 0, 0);
+
+    // 灯光
+    setupLights();
+
+    // 地面阴影
+    const groundGeo = new THREE.CircleGeometry(3, 32);
+    const groundMat = new THREE.ShadowMaterial({ opacity: 0.2 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -1.5;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // 展台
+    const pedestalGeo = new THREE.CylinderGeometry(1.2, 1.4, 0.2, 32);
+    const pedestalMat = new THREE.MeshStandardMaterial({
+      color: 0x8B4513,
+      roughness: 0.8,
+      metalness: 0.1
+    });
+    const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+    pedestal.position.y = -1.4;
+    pedestal.receiveShadow = true;
+    pedestal.castShadow = true;
+    scene.add(pedestal);
+
+    // 窗口大小调整
+    window.addEventListener('resize', onResize);
+
+    // 加载默认模型
+    loadModel('vase');
+
+    // 启动渲染循环
+    animate();
+  }
+
+  function setupLights() {
+    // 环境光
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambient);
+
+    // 主光源（暖色调）
+    const keyLight = new THREE.DirectionalLight(0xfff4e6, 1.2);
+    keyLight.position.set(5, 8, 5);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 30;
+    keyLight.shadow.camera.left = -5;
+    keyLight.shadow.camera.right = 5;
+    keyLight.shadow.camera.top = 5;
+    keyLight.shadow.camera.bottom = -5;
+    scene.add(keyLight);
+
+    // 补光（冷色调）
+    const fillLight = new THREE.DirectionalLight(0xb0c4de, 0.4);
+    fillLight.position.set(-5, 3, -5);
+    scene.add(fillLight);
+
+    // 顶光
+    const topLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    topLight.position.set(0, 10, 0);
+    scene.add(topLight);
+  }
+
+  // ===== 模型生成函数 =====
+  function createVase() {
+    const group = new THREE.Group();
+
+    // 瓶身（旋转曲线生成）
+    const points = [];
+    const profile = [
+      [0.01, -1.2], [0.5, -1.2], [0.55, -1.1], [0.5, -1.0],
+      [0.4, -0.8], [0.35, -0.5], [0.4, -0.2], [0.55, 0.1],
+      [0.6, 0.4], [0.55, 0.7], [0.45, 0.9], [0.35, 1.0],
+      [0.3, 1.1], [0.35, 1.2], [0.3, 1.25], [0.01, 1.25]
+    ];
+    profile.forEach(p => points.push(new THREE.Vector2(p[0], p[1])));
+
+    const vaseGeo = new THREE.LatheGeometry(points, 64);
+    const vaseMat = new THREE.MeshStandardMaterial({
+      color: 0xf0f0e8,
+      roughness: 0.3,
+      metalness: 0.1
+    });
+    const vase = new THREE.Mesh(vaseGeo, vaseMat);
+    vase.castShadow = true;
+    vase.receiveShadow = true;
+    group.add(vase);
+
+    // 青花纹饰（腹部贴图模拟）
+    const decorGeo = new THREE.CylinderGeometry(0.61, 0.55, 0.5, 64, 1, true);
+    const decorCanvas = document.createElement('canvas');
+    decorCanvas.width = 512;
+    decorCanvas.height = 128;
+    const ctx = decorCanvas.getContext('2d');
+    ctx.fillStyle = 'transparent';
+    ctx.clearRect(0, 0, 512, 128);
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 3;
+    // 缠枝莲纹
+    for (let i = 0; i < 4; i++) {
+      const x = i * 128 + 64;
+      ctx.beginPath();
+      ctx.arc(x, 64, 30, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - 30, 64);
+      ctx.quadraticCurveTo(x - 60, 30, x - 90, 50);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + 30, 64);
+      ctx.quadraticCurveTo(x + 60, 100, x + 90, 80);
+      ctx.stroke();
+    }
+    const decorTexture = new THREE.CanvasTexture(decorCanvas);
+    const decorMat = new THREE.MeshStandardMaterial({
+      map: decorTexture,
+      transparent: true,
+      roughness: 0.4
+    });
+    const decor = new THREE.Mesh(decorGeo, decorMat);
+    decor.position.y = 0.25;
+    group.add(decor);
+
+    return group;
+  }
+
+  function createTeapot() {
+    const group = new THREE.Group();
+
+    // 壶身
+    const bodyGeo = new THREE.SphereGeometry(0.7, 32, 32);
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x6b4423,
+      roughness: 0.7,
+      metalness: 0.1
+    });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.scale.y = 0.75;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    group.add(body);
+
+    // 壶嘴
+    const spoutGeo = new THREE.CylinderGeometry(0.08, 0.15, 0.8, 16);
+    const spout = new THREE.Mesh(spoutGeo, bodyMat);
+    spout.position.set(0.7, 0.2, 0);
+    spout.rotation.z = -Math.PI / 4;
+    spout.castShadow = true;
+    group.add(spout);
+
+    // 壶把
+    const handleGeo = new THREE.TorusGeometry(0.3, 0.08, 16, 32, Math.PI);
+    const handle = new THREE.Mesh(handleGeo, bodyMat);
+    handle.position.set(-0.7, 0.3, 0);
+    handle.rotation.z = Math.PI / 2;
+    handle.castShadow = true;
+    group.add(handle);
+
+    // 壶盖
+    const lidGeo = new THREE.CylinderGeometry(0.25, 0.3, 0.15, 32);
+    const lid = new THREE.Mesh(lidGeo, bodyMat);
+    lid.position.y = 0.6;
+    lid.castShadow = true;
+    group.add(lid);
+
+    // 壶钮
+    const knobGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    const knob = new THREE.Mesh(knobGeo, bodyMat);
+    knob.position.y = 0.8;
+    group.add(knob);
+
+    return group;
+  }
+
+  function createBowl() {
+    const group = new THREE.Group();
+
+    // 碗身
+    const points = [];
+    const profile = [
+      [0.01, -0.3], [0.7, -0.3], [0.85, -0.2], [0.9, 0],
+      [0.95, 0.2], [1.0, 0.4], [1.05, 0.5], [1.0, 0.55], [0.01, 0.55]
+    ];
+    profile.forEach(p => points.push(new THREE.Vector2(p[0], p[1])));
+
+    const bowlGeo = new THREE.LatheGeometry(points, 64);
+    const bowlMat = new THREE.MeshStandardMaterial({
+      color: 0x7ba7bc,
+      roughness: 0.2,
+      metalness: 0.05
+    });
+    const bowl = new THREE.Mesh(bowlGeo, bowlMat);
+    bowl.castShadow = true;
+    bowl.receiveShadow = true;
+    group.add(bowl);
+
+    return group;
+  }
+
+  function createWoodFish() {
+    const group = new THREE.Group();
+
+    // 鱼身
+    const bodyGeo = new THREE.SphereGeometry(0.6, 32, 32);
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x8B4513,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.scale.set(1.5, 0.7, 0.6);
+    body.castShadow = true;
+    body.receiveShadow = true;
+    group.add(body);
+
+    // 鱼尾
+    const tailGeo = new THREE.ConeGeometry(0.4, 0.6, 4);
+    const tail = new THREE.Mesh(tailGeo, bodyMat);
+    tail.position.set(-0.9, 0, 0);
+    tail.rotation.z = Math.PI / 2;
+    tail.scale.set(0.8, 1, 1.5);
+    tail.castShadow = true;
+    group.add(tail);
+
+    // 鱼眼
+    const eyeGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeL.position.set(0.6, 0.2, 0.35);
+    group.add(eyeL);
+    const eyeR = eyeL.clone();
+    eyeR.position.z = -0.35;
+    group.add(eyeR);
+
+    // 瞳孔
+    const pupilGeo = new THREE.SphereGeometry(0.04, 16, 16);
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+    const pupilL = new THREE.Mesh(pupilGeo, pupilMat);
+    pupilL.position.set(0.65, 0.2, 0.4);
+    group.add(pupilL);
+    const pupilR = pupilL.clone();
+    pupilR.position.z = -0.4;
+    group.add(pupilR);
+
+    return group;
+  }
+
+  function createIncenseBurner() {
+    const group = new THREE.Group();
+
+    // 承盘
+    const trayGeo = new THREE.CylinderGeometry(1.0, 0.9, 0.1, 32);
+    const bronzeMat = new THREE.MeshStandardMaterial({
+      color: 0x8B7355,
+      roughness: 0.5,
+      metalness: 0.7
+    });
+    const tray = new THREE.Mesh(trayGeo, bronzeMat);
+    tray.position.y = -0.8;
+    tray.castShadow = true;
+    tray.receiveShadow = true;
+    group.add(tray);
+
+    // 炉体
+    const bodyGeo = new THREE.SphereGeometry(0.6, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const body = new THREE.Mesh(bodyGeo, bronzeMat);
+    body.position.y = -0.7;
+    body.scale.y = 0.8;
+    body.castShadow = true;
+    group.add(body);
+
+    // 山形盖
+    const mountainGeo = new THREE.ConeGeometry(0.5, 1.0, 8);
+    const mountain = new THREE.Mesh(mountainGeo, bronzeMat);
+    mountain.position.y = 0.1;
+    mountain.castShadow = true;
+    group.add(mountain);
+
+    // 小山峰
+    for (let i = 0; i < 4; i++) {
+      const angle = (i / 4) * Math.PI * 2;
+      const smallGeo = new THREE.ConeGeometry(0.2, 0.5, 6);
+      const small = new THREE.Mesh(smallGeo, bronzeMat);
+      small.position.set(
+        Math.cos(angle) * 0.3,
+        -0.1,
+        Math.sin(angle) * 0.3
+      );
+      small.castShadow = true;
+      group.add(small);
+    }
+
+    return group;
+  }
+
+  // ===== 模型加载 =====
+  function loadModel(key) {
+    currentExhibitKey = key;
+    loadingOverlay.classList.remove('hidden');
+
+    // 移除当前模型
+    if (currentModel) {
+      scene.remove(currentModel);
+      currentModel.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => m.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        }
+      });
+    }
+
+    // 创建新模型
+    setTimeout(() => {
+      switch(key) {
+        case 'vase': loadGLBModel('/models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
+        case 'teapot': currentModel = createTeapot(); break;
+        case 'bowl': currentModel = createBowl(); break;
+        case 'woodfish': currentModel = createWoodFish(); break;
+        case 'incense': currentModel = createIncenseBurner(); break;
+        default: loadGLBModel('/models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
+      }
+
+      scene.add(currentModel);
+      loadingOverlay.classList.add('hidden');
+      updateExhibitInfo(key);
+      createHotspots(key);
+      resetView();
+    }, 300);
+  }
+
+  /** 加载 GLB 模型 */
+  function loadGLBModel(url) {
+    const loader = new GLTFLoader();
+    loader.load(
+      url,
+      (gltf) => {
+        currentModel = gltf.scene;
+        // 调整模型大小和位置
+        currentModel.scale.set(2.5, 2.5, 2.5);
+        currentModel.position.set(0, 0, 0);
+        scene.add(currentModel);
+        loadingOverlay.classList.add('hidden');
+        updateExhibitInfo(currentExhibitKey);
+        createHotspots(currentExhibitKey);
+        resetView();
+      },
+      (progress) => {
+        // 加载进度
+        if (progress.total > 0) {
+          const pct = Math.round((progress.loaded / progress.total) * 100);
+          loadingOverlay.querySelector('.loading-text').textContent = `加载中... ${pct}%`;
+        }
+      },
+      (error) => {
+        console.error('GLB 模型加载失败，使用备选模型', error);
+        currentModel = createVase();
+        scene.add(currentModel);
+        loadingOverlay.classList.add('hidden');
+        updateExhibitInfo(currentExhibitKey);
+        createHotspots(currentExhibitKey);
+        resetView();
+      }
+    );
+  }
+
+  // ===== 热点系统 =====
+  function createHotspots(key) {
+    hotspotsLayer.innerHTML = '';
+    const exhibit = EXHIBITS[key];
+    if (!exhibit || !exhibit.hotspots) return;
+
+    exhibit.hotspots.forEach((spot, idx) => {
+      const el = document.createElement('div');
+      el.className = 'hotspot';
+      el.textContent = idx + 1;
+      el.dataset.id = spot.id;
+      el.addEventListener('click', () => showHotspotInfo(key, spot.id));
+      hotspotsLayer.appendChild(el);
+    });
+  }
+
+  function updateHotspotPositions() {
+    if (!currentModel) return;
+    const exhibit = EXHIBITS[currentExhibitKey];
+    if (!exhibit || !exhibit.hotspots) return;
+
+    const spots = hotspotsLayer.querySelectorAll('.hotspot');
+    spots.forEach((el, idx) => {
+      const spot = exhibit.hotspots[idx];
+      const worldPos = new THREE.Vector3(spot.pos.x, spot.pos.y, spot.pos.z);
+      const screenPos = worldPos.clone().project(camera);
+
+      const x = (screenPos.x * 0.5 + 0.5) * container.clientWidth;
+      const y = (-screenPos.y * 0.5 + 0.5) * container.clientHeight;
+
+      // 判断是否在模型背面
+      const cameraDir = camera.position.clone().sub(worldPos).normalize();
+      const modelCenter = new THREE.Vector3(0, 0, 0);
+      const spotDir = worldPos.clone().sub(modelCenter).normalize();
+      const dot = cameraDir.dot(spotDir);
+
+      if (dot < 0 || screenPos.z > 1) {
+        el.style.display = 'none';
+      } else {
+        el.style.display = 'flex';
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+      }
+    });
+  }
+
+  function showHotspotInfo(key, spotId) {
+    const exhibit = EXHIBITS[key];
+    const spot = exhibit.hotspots.find(h => h.id === spotId);
+    if (!spot) return;
+
+    // 更新热点激活状态
+    document.querySelectorAll('.hotspot').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === spotId);
+    });
+
+    // 更新右栏信息
+    const infoEl = document.getElementById('hotspot-info');
+    infoEl.innerHTML = `
+      <span class="hotspot-detail-title">${spot.title}</span>
+      <p class="hotspot-detail">${spot.text}</p>
+    `;
+  }
+
+  // ===== 更新展品信息 =====
+  function updateExhibitInfo(key) {
+    const e = EXHIBITS[key];
+    document.getElementById('info-name').textContent = e.name;
+    document.getElementById('info-era').textContent = e.era;
+    document.getElementById('info-desc').textContent = e.desc;
+    document.getElementById('detail-name').textContent = e.name;
+    document.getElementById('detail-era').textContent = e.era.split(' · ')[0];
+    document.getElementById('detail-origin').textContent = e.origin;
+    document.getElementById('detail-material').textContent = e.material;
+    document.getElementById('detail-craft').textContent = e.craft;
+
+    // 重置热点信息
+    document.getElementById('hotspot-info').innerHTML =
+      '<p class="hotspot-placeholder">点击模型上的热点查看详细说明</p>';
+    document.querySelectorAll('.hotspot').forEach(el => el.classList.remove('active'));
+  }
+
+  // ===== 视角控制 =====
+  function resetView() {
+    camera.position.set(0, 1, 5);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  }
+
+  function onResize() {
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+  }
+
+  // ===== 渲染循环 =====
+  function animate() {
+    requestAnimationFrame(animate);
+
+    if (autoRotate && currentModel) {
+      currentModel.rotation.y += 0.005;
+    }
+
+    controls.update();
+    updateHotspotPositions();
+    renderer.render(scene, camera);
+  }
+
+  // ===== 事件绑定 =====
+  document.querySelectorAll('.model-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.model-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      loadModel(card.dataset.model);
+    });
+  });
+
+  document.getElementById('reset-view-btn').addEventListener('click', resetView);
+
+  document.getElementById('auto-rotate-btn').addEventListener('click', (e) => {
+    autoRotate = !autoRotate;
+    e.currentTarget.classList.toggle('active', autoRotate);
+  });
+
+  document.getElementById('fullscreen-btn').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      container.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  // ===== 启动 =====
+  initThree();
+</script>
+</Layout>

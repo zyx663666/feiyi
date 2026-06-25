@@ -1,0 +1,8 @@
+Model Information:
+* title:	1986.85 Jar with Dragon Design
+* source:	https://sketchfab.com/3d-models/198685-jar-with-dragon-design-081f588b9ca24a0ea5ed79ee3d7bed47
+* author:	Cleveland Museum of Art (https://sketchfab.com/clevelandart)
+
+Model License:
+* license type:	CC0-1.0 (http://creativecommons.org/publicdomain/zero/1.0/)
+* requirements:	Credit is not mandatory. Commercial use is allowed.

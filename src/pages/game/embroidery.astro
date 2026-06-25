@@ -1,0 +1,1296 @@
+---
+/**
+ * 刺绣连线挑战
+ * 玩家按顺序点击针孔点连线，完成刺绣图案
+ */
+import Layout from "../../components/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+import Footer from "../../components/Footer.astro";
+---
+
+<Layout title="刺绣连线挑战 - 非遗传承">
+  <Navigation />
+
+  <main class="game-main">
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/game" class="back-btn" aria-label="返回游戏">←</a>
+        <div class="title-area">
+          <h1 class="game-title">刺绣连线挑战</h1>
+          <p class="game-subtitle">穿针引线 · 绣出锦绣图案</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <nav class="game-tabs">
+          <a href="/game" class="tab-btn">拉坯模拟器</a>
+          <a href="/game/embroidery" class="tab-btn active">刺绣挑战</a>
+          <a href="/game/glaze" class="tab-btn">釉色调配</a>
+        </nav>
+        <button class="header-btn" id="reset-btn" title="重置">↻</button>
+      </div>
+    </header>
+
+    <div class="game-body">
+      <!-- 左栏：图案预览 + 针法说明 -->
+      <aside class="panel reference-panel">
+        <h2 class="panel-title">图案预览</h2>
+        <div class="pattern-preview-wrap">
+          <canvas id="preview-canvas" width="200" height="200"></canvas>
+        </div>
+        <div class="pattern-info">
+          <p class="pattern-name" id="pattern-name">莲花</p>
+          <p class="pattern-desc" id="pattern-desc">出淤泥而不染，刺绣经典纹样</p>
+        </div>
+        <div class="stitch-info">
+          <h3 class="stitch-title">当前针法</h3>
+          <div class="stitch-card" id="stitch-card">
+            <span class="stitch-icon">─</span>
+            <div>
+              <p class="stitch-name" id="stitch-name">平针</p>
+              <p class="stitch-desc" id="stitch-desc">基础针法，直线连线</p>
+            </div>
+          </div>
+        </div>
+        <div class="pattern-selector">
+          <div class="pattern-card active" data-pattern="lotus">
+            <canvas class="pattern-thumb" width="50" height="50" data-pattern="lotus"></canvas>
+            <span>莲花</span>
+          </div>
+          <div class="pattern-card" data-pattern="butterfly">
+            <canvas class="pattern-thumb" width="50" height="50" data-pattern="butterfly"></canvas>
+            <span>蝴蝶</span>
+          </div>
+          <div class="pattern-card" data-pattern="plum">
+            <canvas class="pattern-thumb" width="50" height="50" data-pattern="plum"></canvas>
+            <span>梅花</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中栏：主画布 -->
+      <section class="panel canvas-panel">
+        <div class="canvas-wrap">
+          <canvas id="game-canvas" width="560" height="560"></canvas>
+          <div class="canvas-hint" id="canvas-hint">
+            <span class="hint-icon">✋</span>
+            <span>按编号顺序点击针孔连线</span>
+          </div>
+        </div>
+        <div class="canvas-controls">
+          <div class="progress-info">
+            <span class="progress-label">进度</span>
+            <span class="progress-value" id="progress-value">0 / 0</span>
+          </div>
+          <div class="timer-info">
+            <span class="timer-label">用时</span>
+            <span class="timer-value" id="timer-value">00:00</span>
+          </div>
+          <button class="action-btn primary" id="finish-btn" disabled>完成刺绣</button>
+        </div>
+      </section>
+
+      <!-- 右栏：评分 + 玩法 -->
+      <aside class="panel score-panel">
+        <h2 class="panel-title">评分</h2>
+        <div class="score-ring-wrap">
+          <svg class="score-ring" width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="8" />
+            <circle cx="70" cy="70" r="60" fill="none" stroke="var(--silk)" stroke-width="8"
+              stroke-linecap="round" id="score-ring-circle"
+              stroke-dasharray="377" stroke-dashoffset="377"
+              transform="rotate(-90 70 70)" />
+          </svg>
+          <div class="score-text">
+            <span class="score-num" id="score-num">0</span>
+            <span class="score-unit">/100</span>
+          </div>
+        </div>
+        <div class="score-breakdown">
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">连线进度</span>
+              <span class="score-item-val" id="progress-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="progress-bar" style="width:0%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">精准度</span>
+              <span class="score-item-val" id="accuracy-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="accuracy-bar" style="width:0%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">用时评分</span>
+              <span class="score-item-val" id="time-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="time-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="score-tip" id="score-tip">
+          <span class="tip-icon">💡</span>
+          <span class="tip-text">按编号顺序点击针孔，连出完整图案</span>
+        </div>
+        <div class="help-inline">
+          <h3 class="help-title">玩法说明</h3>
+          <ol class="help-list">
+            <li>左侧选择刺绣图案（莲花/蝴蝶/梅花）</li>
+            <li>按 <strong>编号顺序</strong> 依次点击针孔</li>
+            <li>点击位置越接近针孔，<strong>精准度</strong>越高</li>
+            <li>连线自动绘制，错误点击会提示</li>
+            <li>完成所有连线后点击 <strong>完成刺绣</strong></li>
+            <li>用时越短、精准度越高，评分越高</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <!-- 完成弹窗 -->
+    <div class="modal-overlay" id="result-modal">
+      <div class="modal-content">
+        <button class="modal-close" id="result-close">×</button>
+        <h2 class="modal-title">绣品完成</h2>
+        <div class="result-score-ring">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="10" />
+            <circle cx="80" cy="80" r="68" fill="none" stroke="var(--silk)" stroke-width="10"
+              stroke-linecap="round" id="result-ring"
+              stroke-dasharray="427" stroke-dashoffset="427"
+              transform="rotate(-90 80 80)" />
+          </svg>
+          <div class="result-score-text">
+            <span class="result-num" id="result-num">0</span>
+            <span class="result-grade" id="result-grade"></span>
+          </div>
+        </div>
+        <p class="result-comment" id="result-comment"></p>
+        <div class="result-actions">
+          <button class="action-btn" id="result-retry">再试一次</button>
+          <button class="action-btn primary" id="result-next">换一个图案</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  :root {
+    --silk: #c4452a;
+    --silk-light: #e8a090;
+    --silk-gold: #C4A35A;
+    --paper: #f4f1ea;
+    --ink: #2c2418;
+    --paper-dark: #e8e0d0;
+    --gray: #7a7268;
+  }
+
+  .game-main {
+    min-height: 100vh;
+    padding-top: var(--nav-height);
+    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+  }
+
+  .game-header {
+    width: 100%;
+    max-width: 1400px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    color: var(--silk);
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+    background: var(--silk);
+    color: white;
+  }
+
+  .game-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.8rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .game-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gray);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover {
+    color: var(--silk);
+  }
+
+  .tab-btn.active {
+    background: var(--silk);
+    color: white;
+  }
+
+  .header-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    color: var(--silk);
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .header-btn:hover {
+    background: var(--silk);
+    color: white;
+  }
+
+  .game-body {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px;
+    max-width: 1400px;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--paper-dark);
+  }
+
+  /* 左栏 */
+  .reference-panel {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .pattern-preview-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  #preview-canvas {
+    background: #faf8f3;
+    border-radius: 8px;
+  }
+
+  .pattern-info {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .pattern-name {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.4rem;
+    color: var(--silk);
+    margin-bottom: 4px;
+  }
+
+  .pattern-desc {
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .stitch-info {
+    margin-bottom: 16px;
+  }
+
+  .stitch-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .stitch-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #faf8f3;
+    border-radius: 8px;
+    border-left: 3px solid var(--silk);
+  }
+
+  .stitch-icon {
+    font-size: 1.5rem;
+    color: var(--silk);
+    font-weight: 900;
+  }
+
+  .stitch-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .stitch-desc {
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+
+  .pattern-selector {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .pattern-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pattern-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .pattern-card.active {
+    border-color: var(--silk);
+    background: #faf8f3;
+  }
+
+  .pattern-card span {
+    font-size: 0.72rem;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .pattern-card.active span {
+    color: var(--silk);
+  }
+
+  /* 中栏 */
+  .canvas-panel {
+    flex: 1;
+    align-items: center;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  #game-canvas {
+    background: #faf8f3;
+    border-radius: 8px;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .canvas-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(44,36,24,0.7);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .canvas-hint.hidden {
+    opacity: 0;
+  }
+
+  .canvas-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 500px;
+    justify-content: space-around;
+  }
+
+  .progress-info, .timer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .progress-label, .timer-label {
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+
+  .progress-value, .timer-value {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--silk);
+  }
+
+  .action-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--silk);
+    background: white;
+    color: var(--silk);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .action-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .action-btn.primary {
+    background: var(--silk);
+    color: white;
+  }
+
+  .action-btn.primary:hover:not(:disabled) {
+    background: #a03520;
+  }
+
+  /* 右栏 */
+  .score-panel {
+    width: 260px;
+    flex-shrink: 0;
+  }
+
+  .score-ring-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  #score-ring-circle {
+    transition: stroke-dashoffset 0.5s ease;
+  }
+
+  .score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .score-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--silk);
+    display: block;
+    line-height: 1;
+  }
+
+  .score-unit {
+    font-size: 0.75rem;
+    color: var(--gray);
+  }
+
+  .score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .score-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .score-item-name {
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+
+  .score-item-val {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--silk);
+  }
+
+  .score-bar {
+    height: 6px;
+    background: var(--paper-dark);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--silk), var(--silk-gold));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .score-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #faf8f3;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .tip-icon { flex-shrink: 0; }
+
+  .help-inline {
+    margin-top: 12px;
+    padding: 12px;
+    background: #faf8f3;
+    border-radius: 8px;
+    border-left: 3px solid var(--silk);
+  }
+
+  .help-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--silk);
+    margin-bottom: 8px;
+  }
+
+  .help-list {
+    list-style: none;
+    counter-reset: help-counter;
+    padding: 0;
+    margin: 0;
+  }
+
+  .help-list li {
+    counter-increment: help-counter;
+    font-size: 0.72rem;
+    color: var(--gray);
+    line-height: 1.6;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .help-list li::before {
+    content: counter(help-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--silk);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .help-list li strong { color: var(--ink); }
+
+  /* 完成弹窗 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.05);
+    color: var(--ink);
+    font-size: 1.4rem;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.6rem;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+
+  .result-score-ring {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  #result-ring {
+    transition: stroke-dashoffset 1s ease;
+  }
+
+  .result-score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .result-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--silk);
+    display: block;
+    line-height: 1;
+  }
+
+  .result-grade {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.2rem;
+    color: var(--silk-gold);
+  }
+
+  .result-comment {
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  @media (max-width: 960px) {
+    .game-body { flex-direction: column; }
+    .reference-panel, .score-panel { width: 100%; }
+  }
+
+  @media (max-width: 600px) {
+    #game-canvas { width: 100%; max-width: 360px; height: auto; }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  'use strict';
+
+  const CANVAS_W = 560;
+  const CANVAS_H = 560;
+
+  // ===== 图案定义（针孔点坐标 + 连线顺序） =====
+  const PATTERNS = {
+    lotus: {
+      name: '莲花',
+      desc: '出淤泥而不染，刺绣经典纹样',
+      stitch: { name: '平针', desc: '基础针法，直线连线', icon: '─' },
+      points: [
+        {x:250,y:400}, {x:200,y:360}, {x:160,y:300}, {x:150,y:240},
+        {x:170,y:190}, {x:210,y:160}, {x:250,y:150}, {x:290,y:160},
+        {x:330,y:190}, {x:350,y:240}, {x:340,y:300}, {x:300,y:360},
+        {x:250,y:400}, {x:250,y:300}, {x:220,y:260}, {x:230,y:220},
+        {x:250,y:200}, {x:270,y:220}, {x:280,y:260}, {x:250,y:300}
+      ],
+      color: '#c4452a'
+    },
+    butterfly: {
+      name: '蝴蝶',
+      desc: '蝶恋花，象征美好与爱情',
+      stitch: { name: '回针', desc: '轮廓针法，连续勾勒', icon: '⟿' },
+      points: [
+        {x:250,y:250}, {x:180,y:200}, {x:120,y:180}, {x:100,y:220},
+        {x:120,y:260}, {x:170,y:270}, {x:200,y:250}, {x:250,y:250},
+        {x:300,y:250}, {x:330,y:270}, {x:380,y:260}, {x:400,y:220},
+        {x:380,y:180}, {x:320,y:200}, {x:250,y:250}, {x:250,y:200},
+        {x:230,y:160}, {x:250,y:140}, {x:270,y:160}, {x:250,y:200}
+      ],
+      color: '#8B4513'
+    },
+    plum: {
+      name: '梅花',
+      desc: '凌寒独自开，傲骨冰心',
+      stitch: { name: '链针', desc: '环环相扣，花瓣成形', icon: '∘' },
+      points: [
+        {x:250,y:250}, {x:250,y:190}, {x:300,y:170}, {x:330,y:200},
+        {x:320,y:240}, {x:280,y:260}, {x:250,y:250}, {x:220,y:260},
+        {x:180,y:240}, {x:170,y:200}, {x:200,y:170}, {x:250,y:190},
+        {x:250,y:250}, {x:250,y:320}, {x:250,y:380}, {x:230,y:350},
+        {x:250,y:320}, {x:270,y:350}, {x:250,y:380}
+      ],
+      color: '#d4567a'
+    }
+  };
+
+  // ===== 状态 =====
+  let currentPattern = 'lotus';
+  let points = [];
+  let connections = [];
+  let currentStep = 0;
+  let isCompleted = false;
+  let startTime = null;
+  let elapsedTime = 0;
+  let timerInterval = null;
+  let accuracyScores = [];
+  let hasInteracted = false;
+
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  const previewCanvas = document.getElementById('preview-canvas');
+  const previewCtx = previewCanvas.getContext('2d');
+
+  // ===== 加载图案 =====
+  function loadPattern(type) {
+    currentPattern = type;
+    const p = PATTERNS[type];
+    points = p.points.map(function(pt) { return {x: pt.x, y: pt.y}; });
+    connections = [];
+    currentStep = 0;
+    isCompleted = false;
+    accuracyScores = [];
+    hasInteracted = false;
+    startTime = null;
+    elapsedTime = 0;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+    document.getElementById('pattern-name').textContent = p.name;
+    document.getElementById('pattern-desc').textContent = p.desc;
+    document.getElementById('stitch-name').textContent = p.stitch.name;
+    document.getElementById('stitch-desc').textContent = p.stitch.desc;
+    document.getElementById('stitch-card').querySelector('.stitch-icon').textContent = p.stitch.icon;
+    document.getElementById('progress-value').textContent = '0 / ' + (points.length - 1);
+    document.getElementById('timer-value').textContent = '00:00';
+    document.getElementById('finish-btn').disabled = true;
+    document.getElementById('canvas-hint').classList.remove('hidden');
+
+    drawPreview();
+    drawGame();
+    updateScore();
+  }
+
+  // ===== 绘制预览 =====
+  function drawPreview() {
+    const p = PATTERNS[currentPattern];
+    const pw = previewCanvas.width;
+    const ph = previewCanvas.height;
+    previewCtx.clearRect(0, 0, pw, ph);
+
+    const scaleX = pw / CANVAS_W;
+    const scaleY = ph / CANVAS_H;
+
+    // 填充
+    previewCtx.fillStyle = p.color + '20';
+    previewCtx.beginPath();
+    for (let i = 0; i < points.length; i++) {
+      const x = points[i].x * scaleX;
+      const y = points[i].y * scaleY;
+      if (i === 0) previewCtx.moveTo(x, y);
+      else previewCtx.lineTo(x, y);
+    }
+    previewCtx.closePath();
+    previewCtx.fill();
+
+    // 轮廓
+    previewCtx.strokeStyle = p.color;
+    previewCtx.lineWidth = 2;
+    previewCtx.beginPath();
+    for (let i = 0; i < points.length; i++) {
+      const x = points[i].x * scaleX;
+      const y = points[i].y * scaleY;
+      if (i === 0) previewCtx.moveTo(x, y);
+      else previewCtx.lineTo(x, y);
+    }
+    previewCtx.stroke();
+  }
+
+  // ===== 绘制游戏画布 =====
+  function drawGame() {
+    const p = PATTERNS[currentPattern];
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // 背景纹理（绸缎感）
+    const bgGrad = ctx.createLinearGradient(0, 0, CANVAS_W, CANVAS_H);
+    bgGrad.addColorStop(0, '#faf8f3');
+    bgGrad.addColorStop(0.5, '#f5f0e8');
+    bgGrad.addColorStop(1, '#faf8f3');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // 绸缎纹理线
+    ctx.strokeStyle = 'rgba(196,163,90,0.06)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < CANVAS_W; i += 8) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, CANVAS_H);
+      ctx.stroke();
+    }
+
+    // 已完成的连线
+    for (let i = 0; i < connections.length; i++) {
+      const conn = connections[i];
+      // 线条阴影
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(conn.from.x + 1, conn.from.y + 1);
+      ctx.lineTo(conn.to.x + 1, conn.to.y + 1);
+      ctx.stroke();
+
+      // 绣线
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(conn.from.x, conn.from.y);
+      ctx.lineTo(conn.to.x, conn.to.y);
+      ctx.stroke();
+
+      // 高光
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(conn.from.x, conn.from.y);
+      ctx.lineTo(conn.to.x, conn.to.y);
+      ctx.stroke();
+    }
+
+    // 绘制针孔点
+    for (let i = 0; i < points.length; i++) {
+      const pt = points[i];
+      const isNext = i === currentStep;
+      const isDone = i < currentStep;
+
+      if (isDone) {
+        // 已完成点
+        ctx.fillStyle = p.color + '60';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (isNext) {
+        // 下一个目标点（脉冲动画）
+        const pulse = Math.sin(Date.now() * 0.005) * 4 + 14;
+        ctx.fillStyle = p.color + '30';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 11, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 编号
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i + 1, pt.x, pt.y);
+      } else {
+        // 未到达点
+        ctx.fillStyle = 'rgba(139,69,19,0.2)';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(139,69,19,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 编号
+        ctx.fillStyle = 'rgba(139,69,19,0.5)';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i + 1, pt.x, pt.y);
+      }
+    }
+
+    // 完成 watermark
+    if (isCompleted) {
+      ctx.fillStyle = 'rgba(196,163,90,0.15)';
+      ctx.font = 'bold 48px "Ma Shan Zheng", cursive';
+      ctx.textAlign = 'center';
+      ctx.fillText('绣品完成', CANVAS_W / 2, CANVAS_H / 2);
+    }
+  }
+
+  // ===== 点击处理 =====
+  function handleClick(e) {
+    if (isCompleted) return;
+    if (currentStep >= points.length - 1) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_W / rect.width;
+    const scaleY = CANVAS_H / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    const target = points[currentStep + 1];
+    const dist = Math.sqrt(Math.pow(clickX - target.x, 2) + Math.pow(clickY - target.y, 2));
+
+    // 点击容差范围
+    const tolerance = 40;
+    if (dist <= tolerance) {
+      // 成功连线
+      connections.push({
+        from: {x: points[currentStep].x, y: points[currentStep].y},
+        to: {x: target.x, y: target.y}
+      });
+
+      // 精准度评分（距离越近分越高）
+      const accuracy = Math.max(0, 1 - dist / tolerance);
+      accuracyScores.push(accuracy);
+
+      currentStep++;
+
+      if (!hasInteracted) {
+        hasInteracted = true;
+        document.getElementById('canvas-hint').classList.add('hidden');
+      }
+
+      // 开始计时
+      if (!startTime) {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 100);
+      }
+
+      // 检查完成
+      if (currentStep >= points.length - 1) {
+        isCompleted = true;
+        clearInterval(timerInterval);
+        document.getElementById('finish-btn').disabled = false;
+      }
+
+      document.getElementById('progress-value').textContent = currentStep + ' / ' + (points.length - 1);
+      drawGame();
+      updateScore();
+    } else {
+      // 错误点击 - 闪烁提示
+      flashError(clickX, clickY);
+    }
+  }
+
+  // ===== 错误闪烁 =====
+  function flashError(x, y) {
+    let flashCount = 0;
+    const flashInterval = setInterval(function() {
+      flashCount++;
+      drawGame();
+      if (flashCount % 2 === 1) {
+        ctx.fillStyle = 'rgba(255,0,0,0.3)';
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (flashCount >= 4) {
+        clearInterval(flashInterval);
+        drawGame();
+      }
+    }, 100);
+  }
+
+  // ===== 计时器 =====
+  function updateTimer() {
+    if (!startTime) return;
+    elapsedTime = (Date.now() - startTime) / 1000;
+    const min = Math.floor(elapsedTime / 60);
+    const sec = Math.floor(elapsedTime % 60);
+    document.getElementById('timer-value').textContent =
+      String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    updateScore();
+  }
+
+  // ===== 评分 =====
+  function calculateScore() {
+    const totalSteps = points.length - 1;
+    const progress = totalSteps > 0 ? currentStep / totalSteps : 0;
+
+    const avgAccuracy = accuracyScores.length > 0
+      ? accuracyScores.reduce(function(a, b) { return a + b; }, 0) / accuracyScores.length
+      : 0;
+
+    // 用时评分（30秒满分，60秒及格）
+    let timeScore = 0;
+    if (elapsedTime > 0) {
+      if (elapsedTime <= 30) timeScore = 1;
+      else if (elapsedTime <= 60) timeScore = 1 - (elapsedTime - 30) / 30 * 0.3;
+      else timeScore = Math.max(0.2, 0.7 - (elapsedTime - 60) / 60 * 0.5);
+    }
+
+    const total = Math.round(progress * 40 + avgAccuracy * 35 + timeScore * 25);
+
+    return {
+      total: Math.min(100, Math.max(0, total)),
+      progress: Math.round(progress * 100),
+      accuracy: Math.round(avgAccuracy * 100),
+      time: Math.round(timeScore * 100)
+    };
+  }
+
+  function updateScore() {
+    const score = calculateScore();
+    const circumference = 2 * Math.PI * 60;
+    const offset = circumference * (1 - score.total / 100);
+    document.getElementById('score-ring-circle').style.strokeDashoffset = offset;
+    document.getElementById('score-num').textContent = score.total;
+
+    document.getElementById('progress-val').textContent = score.progress + '%';
+    document.getElementById('progress-bar').style.width = score.progress + '%';
+    document.getElementById('accuracy-val').textContent = score.accuracy + '%';
+    document.getElementById('accuracy-bar').style.width = score.accuracy + '%';
+    document.getElementById('time-val').textContent = score.time + '%';
+    document.getElementById('time-bar').style.width = score.time + '%';
+
+    const tipEl = document.getElementById('score-tip').querySelector('.tip-text');
+    if (!hasInteracted) {
+      tipEl.textContent = '按编号顺序点击针孔，连出完整图案';
+    } else if (score.accuracy < 60) {
+      tipEl.textContent = '精准度偏低，尽量点击针孔中心位置';
+    } else if (!isCompleted && score.progress < 50) {
+      tipEl.textContent = '继续连线，按编号顺序点击下一个针孔';
+    } else if (!isCompleted) {
+      tipEl.textContent = '即将完成！保持精准点击';
+    } else if (score.total >= 85) {
+      tipEl.textContent = '巧夺天工！绣品精美绝伦';
+    } else if (score.total >= 70) {
+      tipEl.textContent = '针法细腻，绣工不错';
+    } else {
+      tipEl.textContent = '绣品已完成，多练习提升精准度';
+    }
+  }
+
+  // ===== 完成刺绣 =====
+  function finishEmbroidery() {
+    if (!isCompleted) return;
+    const score = calculateScore();
+    const modal = document.getElementById('result-modal');
+    modal.classList.add('show');
+
+    const circumference = 2 * Math.PI * 68;
+    const offset = circumference * (1 - score.total / 100);
+    setTimeout(function() {
+      document.getElementById('result-ring').style.strokeDashoffset = offset;
+    }, 100);
+
+    document.getElementById('result-num').textContent = score.total;
+
+    let grade, comment;
+    if (score.total >= 90) { grade = '绣圣'; comment = '针法出神入化，绣品栩栩如生！'; }
+    else if (score.total >= 75) { grade = '绣娘'; comment = '心灵手巧，针线细腻，绣工精湛。'; }
+    else if (score.total >= 60) { grade = '绣徒'; comment = '基本掌握针法，继续练习必成大器。'; }
+    else { grade = '初学'; comment = '初窥门径，多加练习提升精准度。'; }
+
+    document.getElementById('result-grade').textContent = grade;
+    document.getElementById('result-comment').textContent = comment;
+  }
+
+  // ===== 缩略图 =====
+  function drawPatternThumb(thumbCanvas, type) {
+    const tctx = thumbCanvas.getContext('2d');
+    const w = thumbCanvas.width;
+    const h = thumbCanvas.height;
+    tctx.clearRect(0, 0, w, h);
+
+    const p = PATTERNS[type];
+    const scaleX = w / CANVAS_W;
+    const scaleY = h / CANVAS_H;
+
+    tctx.strokeStyle = p.color;
+    tctx.lineWidth = 1.5;
+    tctx.fillStyle = p.color + '30';
+    tctx.beginPath();
+    for (let i = 0; i < p.points.length; i++) {
+      const x = p.points[i].x * scaleX;
+      const y = p.points[i].y * scaleY;
+      if (i === 0) tctx.moveTo(x, y);
+      else tctx.lineTo(x, y);
+    }
+    tctx.closePath();
+    tctx.fill();
+    tctx.stroke();
+  }
+
+  // ===== 事件绑定 =====
+  canvas.addEventListener('click', handleClick);
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleClick({clientX: touch.clientX, clientY: touch.clientY});
+  }, {passive: false});
+
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    loadPattern(currentPattern);
+  });
+
+  document.getElementById('finish-btn').addEventListener('click', finishEmbroidery);
+
+  document.querySelectorAll('.pattern-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('.pattern-card').forEach(function(c) {
+        c.classList.remove('active');
+      });
+      card.classList.add('active');
+      loadPattern(card.dataset.pattern);
+    });
+  });
+
+  // 弹窗
+  document.getElementById('result-close').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+  });
+  document.getElementById('result-retry').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+    loadPattern(currentPattern);
+  });
+  document.getElementById('result-next').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+    const types = Object.keys(PATTERNS);
+    const idx = types.indexOf(currentPattern);
+    const nextType = types[(idx + 1) % types.length];
+    document.querySelectorAll('.pattern-card').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.pattern === nextType);
+    });
+    loadPattern(nextType);
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  // ===== 动画循环 =====
+  function animate() {
+    if (!isCompleted) {
+      drawGame();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // ===== 初始化 =====
+  function init() {
+    document.querySelectorAll('.pattern-thumb').forEach(function(thumb) {
+      drawPatternThumb(thumb, thumb.dataset.pattern);
+    });
+    loadPattern('lotus');
+    animate();
+  }
+
+  init();
+})();
+</script>
+</Layout>

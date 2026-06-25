@@ -1,0 +1,38 @@
+---
+/**
+ * 首页（index.astro）
+ * 组合导航、Hero、门类屏风、时间线、模块入口、页脚六大区块
+ */
+import Layout from "../components/Layout.astro";
+import Navigation from "../components/Navigation.astro";
+import HeroSection from "../components/HeroSection.astro";
+import CategoryScreens from "../components/CategoryScreens.astro";
+import Timeline from "../components/Timeline.astro";
+import ModuleGates from "../components/ModuleGates.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="首页">
+  <!-- 顶部导航 -->
+  <Navigation />
+
+  <main id="main-content">
+    <!-- Hero 主视觉 -->
+    <HeroSection />
+
+    <!-- 非遗门类屏风 -->
+    <CategoryScreens />
+
+    <!-- 屏风云纹分隔 -->
+    <div class="cloud-divider" aria-hidden="true"></div>
+
+    <!-- 非遗时间线 -->
+    <Timeline />
+
+    <!-- 四大模块入口 -->
+    <ModuleGates />
+  </main>
+
+  <!-- 页脚 -->
+  <Footer />
+</Layout>

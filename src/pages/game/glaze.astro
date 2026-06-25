@@ -1,0 +1,1183 @@
+---
+/**
+ * 釉色调配实验室
+ * 玩家通过调节金属氧化物比例来调配目标釉色
+ */
+import Layout from "../../components/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+import Footer from "../../components/Footer.astro";
+---
+
+<Layout title="釉色调配实验室 - 非遗传承">
+  <Navigation />
+
+  <main class="game-main">
+    <header class="game-header">
+      <div class="header-left">
+        <a href="/game" class="back-btn" aria-label="返回游戏">←</a>
+        <div class="title-area">
+          <h1 class="game-title">釉色调配实验室</h1>
+          <p class="game-subtitle">以火为笔 · 以矿为墨</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <nav class="game-tabs">
+          <a href="/game" class="tab-btn">拉坯模拟器</a>
+          <a href="/game/embroidery" class="tab-btn">刺绣挑战</a>
+          <a href="/game/glaze" class="tab-btn active">釉色调配</a>
+        </nav>
+        <button class="header-btn" id="reset-btn" title="重置">↻</button>
+      </div>
+    </header>
+
+    <div class="game-body">
+      <!-- 左栏：目标釉色 -->
+      <aside class="panel reference-panel">
+        <h2 class="panel-title">目标釉色</h2>
+        <div class="target-color-wrap">
+          <div class="target-color" id="target-color"></div>
+          <p class="target-name" id="target-name">天青釉</p>
+          <p class="target-desc" id="target-desc">雨过天青云破处，这般颜色做将来</p>
+        </div>
+        <div class="target-rgb">
+          <p class="rgb-label">目标 RGB</p>
+          <p class="rgb-value" id="target-rgb">R:0 G:0 B:0</p>
+        </div>
+        <div class="glaze-selector">
+          <div class="glaze-card active" data-glaze="celadon">
+            <div class="glaze-swatch" style="background:#7ba7bc"></div>
+            <span>天青</span>
+          </div>
+          <div class="glaze-card" data-glaze="ru">
+            <div class="glaze-swatch" style="background:#6fa3b5"></div>
+            <span>汝窑</span>
+          </div>
+          <div class="glaze-card" data-glaze="red">
+            <div class="glaze-swatch" style="background:#c4452a"></div>
+            <span>祭红</span>
+          </div>
+          <div class="glaze-card" data-glaze="blue">
+            <div class="glaze-swatch" style="background:#2a5c9e"></div>
+            <span>青花</span>
+          </div>
+          <div class="glaze-card" data-glaze="tea">
+            <div class="glaze-swatch" style="background:#8b6f47"></div>
+            <span>茶叶末</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中栏：调配操作 -->
+      <section class="panel canvas-panel">
+        <div class="mix-area">
+          <div class="color-compare">
+            <div class="compare-item">
+              <div class="compare-label">目标</div>
+              <div class="compare-swatch" id="compare-target"></div>
+            </div>
+            <div class="compare-arrow">→</div>
+            <div class="compare-item">
+              <div class="compare-label">你的调配</div>
+              <div class="compare-swatch" id="compare-mixed"></div>
+            </div>
+          </div>
+
+          <div class="sliders-area">
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">铁 (Fe₂O₃)</span>
+                <span class="slider-icon" style="color:#8B4513">●</span>
+                <span class="slider-value" id="fe-value">0%</span>
+              </div>
+              <input type="range" id="fe-slider" min="0" max="100" value="0" class="slider slider-fe" />
+              <p class="slider-hint">青色系 · 天青/粉青/梅子青</p>
+            </div>
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">铜 (CuO)</span>
+                <span class="slider-icon" style="color:#c4452a">●</span>
+                <span class="slider-value" id="cu-value">0%</span>
+              </div>
+              <input type="range" id="cu-slider" min="0" max="100" value="0" class="slider slider-cu" />
+              <p class="slider-hint">红色系 · 祭红/郎窑红/豇豆红</p>
+            </div>
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">钴 (CoO)</span>
+                <span class="slider-icon" style="color:#2a5c9e">●</span>
+                <span class="slider-value" id="co-value">0%</span>
+              </div>
+              <input type="range" id="co-slider" min="0" max="100" value="0" class="slider slider-co" />
+              <p class="slider-hint">蓝色系 · 青花/霁蓝/宝石蓝</p>
+            </div>
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">锰 (MnO₂)</span>
+                <span class="slider-icon" style="color:#5a3a6e">●</span>
+                <span class="slider-value" id="mn-value">0%</span>
+              </div>
+              <input type="range" id="mn-slider" min="0" max="100" value="0" class="slider slider-mn" />
+              <p class="slider-hint">紫棕系 · 茶叶末/乌金/酱釉</p>
+            </div>
+          </div>
+
+          <button class="action-btn primary fire-btn" id="fire-btn">
+            <span class="fire-icon">🔥</span> 入窑烧制
+          </button>
+        </div>
+      </section>
+
+      <!-- 右栏：评分 + 玩法 -->
+      <aside class="panel score-panel">
+        <h2 class="panel-title">评分</h2>
+        <div class="score-ring-wrap">
+          <svg class="score-ring" width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="8" />
+            <circle cx="70" cy="70" r="60" fill="none" stroke="var(--kiln)" stroke-width="8"
+              stroke-linecap="round" id="score-ring-circle"
+              stroke-dasharray="377" stroke-dashoffset="377"
+              transform="rotate(-90 70 70)" />
+          </svg>
+          <div class="score-text">
+            <span class="score-num" id="score-num">0</span>
+            <span class="score-unit">/100</span>
+          </div>
+        </div>
+        <div class="score-breakdown">
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">色相匹配</span>
+              <span class="score-item-val" id="hue-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="hue-bar" style="width:0%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">明度匹配</span>
+              <span class="score-item-val" id="light-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="light-bar" style="width:0%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-item-header">
+              <span class="score-item-name">饱和度匹配</span>
+              <span class="score-item-val" id="sat-val">0%</span>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="sat-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="score-tip" id="score-tip">
+          <span class="tip-icon">💡</span>
+          <span class="tip-text">调节金属氧化物比例，调配出目标釉色</span>
+        </div>
+        <div class="help-inline">
+          <h3 class="help-title">玩法说明</h3>
+          <ol class="help-list">
+            <li>左侧选择目标釉色（天青/汝窑/祭红等）</li>
+            <li>拖动滑块调节 <strong>金属氧化物</strong> 比例</li>
+            <li>铁→青色系，铜→红色系，钴→蓝色系，锰→紫棕系</li>
+            <li>中间实时预览调配颜色与目标对比</li>
+            <li>点击 <strong>入窑烧制</strong> 查看最终评分</li>
+            <li>色相/明度/饱和度越接近，评分越高</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- 结果弹窗 -->
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="result-close">×</button>
+      <h2 class="modal-title">出窑</h2>
+      <div class="result-colors">
+        <div class="result-color-item">
+          <div class="result-swatch" id="result-target"></div>
+          <span>目标</span>
+        </div>
+        <div class="result-color-item">
+          <div class="result-swatch" id="result-mixed"></div>
+          <span>你的</span>
+        </div>
+      </div>
+      <div class="result-score-ring">
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="10" />
+          <circle cx="80" cy="80" r="68" fill="none" stroke="var(--kiln)" stroke-width="10"
+            stroke-linecap="round" id="result-ring"
+            stroke-dasharray="427" stroke-dashoffset="427"
+            transform="rotate(-90 80 80)" />
+        </svg>
+        <div class="result-score-text">
+          <span class="result-num" id="result-num">0</span>
+          <span class="result-grade" id="result-grade"></span>
+        </div>
+      </div>
+      <p class="result-comment" id="result-comment"></p>
+      <div class="result-actions">
+        <button class="action-btn" id="result-retry">再试一次</button>
+        <button class="action-btn primary" id="result-next">换一个釉色</button>
+      </div>
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  :root {
+    --kiln: #c4452a;
+    --kiln-light: #e8a090;
+    --kiln-gold: #C4A35A;
+    --paper: #f4f1ea;
+    --ink: #2c2418;
+    --paper-dark: #e8e0d0;
+    --gray: #7a7268;
+  }
+
+  .game-main {
+    min-height: 100vh;
+    padding-top: var(--nav-height);
+    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+  }
+
+  .game-header {
+    width: 100%;
+    max-width: 1400px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    color: var(--kiln);
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover { background: var(--kiln); color: white; }
+
+  .game-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.8rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .game-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gray);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { color: var(--kiln); }
+
+  .tab-btn.active { background: var(--kiln); color: white; }
+
+  .header-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    color: var(--kiln);
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .header-btn:hover { background: var(--kiln); color: white; }
+
+  .game-body {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px;
+    max-width: 1400px;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .panel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--paper-dark);
+  }
+
+  /* 左栏 */
+  .reference-panel {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .target-color-wrap {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .target-color {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 -4px 8px rgba(0,0,0,0.1);
+    transition: background-color 0.3s;
+  }
+
+  .target-name {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.4rem;
+    color: var(--kiln);
+    margin-bottom: 4px;
+  }
+
+  .target-desc {
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .target-rgb {
+    text-align: center;
+    padding: 8px;
+    background: #faf8f3;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+
+  .rgb-label {
+    font-size: 0.72rem;
+    color: var(--gray);
+    margin-bottom: 4px;
+  }
+
+  .rgb-value {
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .glaze-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .glaze-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .glaze-card:hover { background: #faf8f3; }
+
+  .glaze-card.active {
+    border-color: var(--kiln);
+    background: #faf8f3;
+  }
+
+  .glaze-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .glaze-card span {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .glaze-card.active span { color: var(--kiln); }
+
+  /* 中栏 */
+  .canvas-panel {
+    flex: 1;
+    align-items: center;
+  }
+
+  .mix-area {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .color-compare {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .compare-item {
+    text-align: center;
+  }
+
+  .compare-label {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-bottom: 6px;
+  }
+
+  .compare-swatch {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transition: background-color 0.3s;
+  }
+
+  .compare-arrow {
+    font-size: 1.5rem;
+    color: var(--gray);
+  }
+
+  .sliders-area {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .slider-group {
+    background: #faf8f3;
+    padding: 12px 16px;
+    border-radius: 10px;
+  }
+
+  .slider-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .slider-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    flex: 1;
+  }
+
+  .slider-icon {
+    font-size: 1.2rem;
+  }
+
+  .slider-value {
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--kiln);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    outline: none;
+    background: var(--paper-dark);
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .slider-fe::-webkit-slider-thumb { background: #8B4513; }
+  .slider-cu::-webkit-slider-thumb { background: #c4452a; }
+  .slider-co::-webkit-slider-thumb { background: #2a5c9e; }
+  .slider-mn::-webkit-slider-thumb { background: #5a3a6e; }
+
+  .slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .slider-fe::-moz-range-thumb { background: #8B4513; }
+  .slider-cu::-moz-range-thumb { background: #c4452a; }
+  .slider-co::-moz-range-thumb { background: #2a5c9e; }
+  .slider-mn::-moz-range-thumb { background: #5a3a6e; }
+
+  .slider-hint {
+    font-size: 0.7rem;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  .fire-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .fire-icon {
+    font-size: 1.3rem;
+  }
+
+  .action-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--kiln);
+    background: white;
+    color: var(--kiln);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .action-btn.primary {
+    background: var(--kiln);
+    color: white;
+  }
+
+  .action-btn.primary:hover { background: #a03520; }
+
+  /* 右栏 */
+  .score-panel {
+    width: 260px;
+    flex-shrink: 0;
+  }
+
+  .score-ring-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  #score-ring-circle { transition: stroke-dashoffset 0.5s ease; }
+
+  .score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .score-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--kiln);
+    display: block;
+    line-height: 1;
+  }
+
+  .score-unit { font-size: 0.75rem; color: var(--gray); }
+
+  .score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .score-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .score-item-name { font-size: 0.8rem; color: var(--ink); }
+  .score-item-val { font-size: 0.8rem; font-weight: 700; color: var(--kiln); }
+
+  .score-bar {
+    height: 6px;
+    background: var(--paper-dark);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--kiln), var(--kiln-gold));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .score-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #faf8f3;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .tip-icon { flex-shrink: 0; }
+
+  .help-inline {
+    margin-top: 12px;
+    padding: 12px;
+    background: #faf8f3;
+    border-radius: 8px;
+    border-left: 3px solid var(--kiln);
+  }
+
+  .help-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--kiln);
+    margin-bottom: 8px;
+  }
+
+  .help-list {
+    list-style: none;
+    counter-reset: help-counter;
+    padding: 0;
+    margin: 0;
+  }
+
+  .help-list li {
+    counter-increment: help-counter;
+    font-size: 0.72rem;
+    color: var(--gray);
+    line-height: 1.6;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .help-list li::before {
+    content: counter(help-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--kiln);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .help-list li strong { color: var(--ink); }
+
+  /* 弹窗 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-content {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.05);
+    color: var(--ink);
+    font-size: 1.4rem;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.6rem;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+
+  .result-colors {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+
+  .result-color-item {
+    text-align: center;
+  }
+
+  .result-swatch {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    margin-bottom: 6px;
+  }
+
+  .result-color-item span {
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+
+  .result-score-ring {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  #result-ring { transition: stroke-dashoffset 1s ease; }
+
+  .result-score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .result-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--kiln);
+    display: block;
+    line-height: 1;
+  }
+
+  .result-grade {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.2rem;
+    color: var(--kiln-gold);
+  }
+
+  .result-comment {
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  @media (max-width: 960px) {
+    .game-body { flex-direction: column; }
+    .reference-panel, .score-panel { width: 100%; }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  'use strict';
+
+  // ===== 釉色定义 =====
+  const GLAZES = {
+    celadon: {
+      name: '天青釉',
+      desc: '雨过天青云破处，这般颜色做将来',
+      rgb: {r: 123, g: 167, b: 188}
+    },
+    ru: {
+      name: '汝窑天蓝',
+      desc: '汝窑之色，雨后初晴，淡雅如洗',
+      rgb: {r: 111, g: 163, b: 181}
+    },
+    red: {
+      name: '祭红釉',
+      desc: '鲜红如血，祭天之器，色如朝霞',
+      rgb: {r: 196, g: 69, b: 42}
+    },
+    blue: {
+      name: '霁蓝釉',
+      desc: '色深如宝石，蓝如雨后晴空',
+      rgb: {r: 42, g: 92, b: 158}
+    },
+    tea: {
+      name: '茶叶末釉',
+      desc: '色如茶叶研末，古朴沉静',
+      rgb: {r: 139, g: 111, b: 71}
+    }
+  };
+
+  // ===== 金属氧化物对颜色的影响映射 =====
+  // 铁→青绿/棕色，铜→红色，钴→蓝色，锰→紫棕
+  function mixColor(fe, cu, co, mn) {
+    const total = fe + cu + co + mn;
+    if (total === 0) return {r: 220, g: 215, b: 200}; // 无釉色（素坯色）
+
+    const nFe = fe / total;
+    const nCu = cu / total;
+    const nCo = co / total;
+    const nMn = mn / total;
+
+    // 基础色：素坯色
+    let r = 220, g = 215, b = 200;
+
+    // 铁的影响：青色→棕色（低浓度青绿，高浓度深棕）
+    r += nFe * (-80 + fe * 0.3);
+    g += nFe * (-30 + fe * 0.1);
+    b += nFe * (20 - fe * 0.2);
+
+    // 铜的影响：红色系
+    r += nCu * (60 + cu * 0.4);
+    g += nCu * (-80 - cu * 0.3);
+    b += nCu * (-70 - cu * 0.3);
+
+    // 钴的影响：蓝色系
+    r += nCo * (-100 - co * 0.3);
+    g += nCo * (-50 + co * 0.1);
+    b += nCo * (80 + co * 0.4);
+
+    // 锰的影响：紫棕色系
+    r += nMn * (-40 + mn * 0.2);
+    g += nMn * (-80 - mn * 0.3);
+    b += nMn * (-30 + mn * 0.1);
+
+    // 烧制暗化效果（总量越高越深）
+    const darken = 1 - total * 0.001;
+    r *= darken;
+    g *= darken;
+    b *= darken;
+
+    return {
+      r: Math.round(Math.max(0, Math.min(255, r))),
+      g: Math.round(Math.max(0, Math.min(255, g))),
+      b: Math.round(Math.max(0, Math.min(255, b)))
+    };
+  }
+
+  // ===== RGB → HSL =====
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    return {h: h * 360, s: s * 100, l: l * 100};
+  }
+
+  // ===== 状态 =====
+  let currentGlaze = 'celadon';
+  let fe = 0, cu = 0, co = 0, mn = 0;
+  let hasAdjusted = false;
+
+  // ===== DOM =====
+  const feSlider = document.getElementById('fe-slider');
+  const cuSlider = document.getElementById('cu-slider');
+  const coSlider = document.getElementById('co-slider');
+  const mnSlider = document.getElementById('mn-slider');
+
+  // ===== 加载釉色 =====
+  function loadGlaze(type) {
+    currentGlaze = type;
+    const g = GLAZES[type];
+    fe = 0; cu = 0; co = 0; mn = 0;
+    hasAdjusted = false;
+
+    feSlider.value = 0; cuSlider.value = 0;
+    coSlider.value = 0; mnSlider.value = 0;
+
+    document.getElementById('target-name').textContent = g.name;
+    document.getElementById('target-desc').textContent = g.desc;
+    document.getElementById('target-color').style.backgroundColor =
+      'rgb(' + g.rgb.r + ',' + g.rgb.g + ',' + g.rgb.b + ')';
+    document.getElementById('target-rgb').textContent =
+      'R:' + g.rgb.r + ' G:' + g.rgb.g + ' B:' + g.rgb.b;
+
+    updatePreview();
+    updateScore();
+  }
+
+  // ===== 更新预览 =====
+  function updatePreview() {
+    const mixed = mixColor(fe, cu, co, mn);
+    const mixedStr = 'rgb(' + mixed.r + ',' + mixed.g + ',' + mixed.b + ')';
+    const target = GLAZES[currentGlaze].rgb;
+    const targetStr = 'rgb(' + target.r + ',' + target.g + ',' + target.b + ')';
+
+    document.getElementById('compare-target').style.backgroundColor = targetStr;
+    document.getElementById('compare-mixed').style.backgroundColor = mixedStr;
+
+    document.getElementById('fe-value').textContent = fe + '%';
+    document.getElementById('cu-value').textContent = cu + '%';
+    document.getElementById('co-value').textContent = co + '%';
+    document.getElementById('mn-value').textContent = mn + '%';
+
+    // 滑块轨道渐变
+    feSlider.style.background = 'linear-gradient(90deg, #e8e0d0 ' + fe + '%, #8B4513 ' + fe + '%)';
+    cuSlider.style.background = 'linear-gradient(90deg, #e8e0d0 ' + cu + '%, #c4452a ' + cu + '%)';
+    coSlider.style.background = 'linear-gradient(90deg, #e8e0d0 ' + co + '%, #2a5c9e ' + co + '%)';
+    mnSlider.style.background = 'linear-gradient(90deg, #e8e0d0 ' + mn + '%, #5a3a6e ' + mn + '%)';
+  }
+
+  // ===== 评分 =====
+  function calculateScore() {
+    const mixed = mixColor(fe, cu, co, mn);
+    const target = GLAZES[currentGlaze].rgb;
+
+    const mixedHsl = rgbToHsl(mixed.r, mixed.g, mixed.b);
+    const targetHsl = rgbToHsl(target.r, target.g, target.b);
+
+    // 色相匹配（0-360度差值）
+    let hueDiff = Math.abs(mixedHsl.h - targetHsl.h);
+    if (hueDiff > 180) hueDiff = 360 - hueDiff;
+    const hueMatch = Math.max(0, 1 - hueDiff / 180);
+
+    // 明度匹配
+    const lightDiff = Math.abs(mixedHsl.l - targetHsl.l);
+    const lightMatch = Math.max(0, 1 - lightDiff / 50);
+
+    // 饱和度匹配
+    const satDiff = Math.abs(mixedHsl.s - targetHsl.s);
+    const satMatch = Math.max(0, 1 - satDiff / 60);
+
+    const total = Math.round(hueMatch * 40 + lightMatch * 35 + satMatch * 25);
+
+    return {
+      total: Math.min(100, Math.max(0, total)),
+      hue: Math.round(hueMatch * 100),
+      light: Math.round(lightMatch * 100),
+      sat: Math.round(satMatch * 100)
+    };
+  }
+
+  function updateScore() {
+    const score = calculateScore();
+    const circumference = 2 * Math.PI * 60;
+    const offset = circumference * (1 - score.total / 100);
+    document.getElementById('score-ring-circle').style.strokeDashoffset = offset;
+    document.getElementById('score-num').textContent = score.total;
+
+    document.getElementById('hue-val').textContent = score.hue + '%';
+    document.getElementById('hue-bar').style.width = score.hue + '%';
+    document.getElementById('light-val').textContent = score.light + '%';
+    document.getElementById('light-bar').style.width = score.light + '%';
+    document.getElementById('sat-val').textContent = score.sat + '%';
+    document.getElementById('sat-bar').style.width = score.sat + '%';
+
+    const tipEl = document.getElementById('score-tip').querySelector('.tip-text');
+    if (!hasAdjusted) {
+      tipEl.textContent = '调节金属氧化物比例，调配出目标釉色';
+    } else if (score.hue < 50) {
+      tipEl.textContent = '色相偏差较大，调整铁/铜/钴的比例';
+    } else if (score.light < 50) {
+      tipEl.textContent = '明度偏差较大，调整氧化物总量';
+    } else if (score.sat < 50) {
+      tipEl.textContent = '饱和度不足，增加主要呈色剂用量';
+    } else if (score.total < 60) {
+      tipEl.textContent = '继续微调，注意观察颜色变化';
+    } else if (score.total < 80) {
+      tipEl.textContent = '接近目标！细节处再微调一下';
+    } else {
+      tipEl.textContent = '窑火纯青！釉色几近完美';
+    }
+  }
+
+  // ===== 入窑烧制 =====
+  function fireGlaze() {
+    const score = calculateScore();
+    const mixed = mixColor(fe, cu, co, mn);
+    const target = GLAZES[currentGlaze].rgb;
+
+    document.getElementById('result-target').style.backgroundColor =
+      'rgb(' + target.r + ',' + target.g + ',' + target.b + ')';
+    document.getElementById('result-mixed').style.backgroundColor =
+      'rgb(' + mixed.r + ',' + mixed.g + ',' + mixed.b + ')';
+
+    document.getElementById('result-modal').classList.add('show');
+
+    const circumference = 2 * Math.PI * 68;
+    const offset = circumference * (1 - score.total / 100);
+    setTimeout(function() {
+      document.getElementById('result-ring').style.strokeDashoffset = offset;
+    }, 100);
+
+    document.getElementById('result-num').textContent = score.total;
+
+    let grade, comment;
+    if (score.total >= 90) { grade = '窑神'; comment = '天工开物，釉色绝伦！千年窑火不过如此。'; }
+    else if (score.total >= 75) { grade = '大匠'; comment = '釉色精妙，几可乱真，堪称良工。'; }
+    else if (score.total >= 60) { grade = '匠人'; comment = '已具雏形，再精进便可出窑。'; }
+    else { grade = '学徒'; comment = '釉色尚远，多试几次掌握规律。'; }
+
+    document.getElementById('result-grade').textContent = grade;
+    document.getElementById('result-comment').textContent = comment;
+  }
+
+  // ===== 事件绑定 =====
+  function onSliderInput() {
+    fe = parseInt(feSlider.value);
+    cu = parseInt(cuSlider.value);
+    co = parseInt(coSlider.value);
+    mn = parseInt(mnSlider.value);
+    hasAdjusted = true;
+    updatePreview();
+    updateScore();
+  }
+
+  feSlider.addEventListener('input', onSliderInput);
+  cuSlider.addEventListener('input', onSliderInput);
+  coSlider.addEventListener('input', onSliderInput);
+  mnSlider.addEventListener('input', onSliderInput);
+
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    loadGlaze(currentGlaze);
+  });
+
+  document.getElementById('fire-btn').addEventListener('click', fireGlaze);
+
+  document.querySelectorAll('.glaze-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('.glaze-card').forEach(function(c) {
+        c.classList.remove('active');
+      });
+      card.classList.add('active');
+      loadGlaze(card.dataset.glaze);
+    });
+  });
+
+  document.getElementById('result-close').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+  });
+
+  document.getElementById('result-retry').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+    loadGlaze(currentGlaze);
+  });
+
+  document.getElementById('result-next').addEventListener('click', function() {
+    document.getElementById('result-modal').classList.remove('show');
+    const types = Object.keys(GLAZES);
+    const idx = types.indexOf(currentGlaze);
+    const nextType = types[(idx + 1) % types.length];
+    document.querySelectorAll('.glaze-card').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.glaze === nextType);
+    });
+    loadGlaze(nextType);
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  // ===== 初始化 =====
+  loadGlaze('celadon');
+})();
+</script>
+</Layout>

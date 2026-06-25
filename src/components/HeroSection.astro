@@ -1,0 +1,194 @@
+---
+/**
+ * 首页 Hero 主视觉组件
+ * 展示项目主标题、副标题、引言和向下滚动提示
+ * 背景使用水墨流动 Canvas 动画（通过 iframe 嵌入）
+ */
+---
+
+<section class="hero" id="hero" aria-label="主视觉">
+  <!-- 水墨流动动画背景（iframe 嵌入，独立文件便于复用和调试） -->
+  <iframe
+    class="hero-ink-animation"
+    src="/animations/ink-flow.html"
+    title="水墨流动背景动画"
+    aria-hidden="true"
+    frameborder="0"
+    allowfullscreen
+  ></iframe>
+
+  <!-- 半透明遮罩层，确保文字可读性 -->
+  <div class="hero-overlay"></div>
+
+  <div class="container hero-content">
+    <h1 class="hero-title">非遗传承</h1>
+    <p class="hero-subtitle">指尖上的千年记忆</p>
+    <p class="hero-intro">
+      从泥土到瓷器，从丝线到锦绣，从原木到雕件。<br />
+      走进非遗世界，感受手艺背后的温度与匠心。
+    </p>
+
+    <a href="#categories" class="hero-cta" aria-label="向下探索">
+      <span class="cta-text">向下探索</span>
+      <span class="cta-arrow" aria-hidden="true">↓</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    padding-top: var(--nav-height);
+  }
+
+  /* 水墨流动动画 iframe：铺满整个 Hero 区域 */
+  .hero-ink-animation {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border: none;
+    pointer-events: none;
+  }
+
+  /* 半透明遮罩：在动画上方叠加一层深色渐变，确保文字清晰可读 */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at center, rgba(26, 26, 46, 0.3) 0%, rgba(26, 26, 46, 0.7) 100%),
+      linear-gradient(180deg, rgba(26, 26, 46, 0.2) 0%, rgba(26, 26, 46, 0.5) 50%, rgba(26, 26, 46, 0.8) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: 6rem;
+    color: var(--color-text-light);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 0 60px rgba(196, 163, 90, 0.15);
+    margin-bottom: var(--spacing-md);
+    opacity: 0;
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    color: var(--color-secondary);
+    letter-spacing: 0.5em;
+    margin-bottom: var(--spacing-xl);
+    opacity: 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .hero-intro {
+    font-family: var(--font-body);
+    font-size: 1.125rem;
+    color: var(--color-text-light);
+    line-height: 2;
+    max-width: 640px;
+    margin-bottom: var(--spacing-2xl);
+    opacity: 0;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-text-light);
+    opacity: 0;
+    transition: color 0.3s ease;
+  }
+
+  .hero-cta:hover {
+    color: var(--color-secondary);
+  }
+
+  .cta-text {
+    font-size: 0.875rem;
+    letter-spacing: 0.2em;
+  }
+
+  .cta-arrow {
+    font-size: 1.5rem;
+    animation: breathe 2s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(8px);
+      opacity: 0.6;
+    }
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 4rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      letter-spacing: 0.3em;
+    }
+
+    .hero-intro {
+      font-size: 1rem;
+      padding: 0 var(--spacing-md);
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Hero 入场动画
+   * 使用 GSAP 实现标题、副标题、引言和 CTA 的依次淡入
+   */
+  import { gsap } from "gsap";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+    tl.fromTo(".hero-title",
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 1.2 }
+    )
+    .fromTo(".hero-subtitle",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 1 },
+      "-=0.7"
+    )
+    .fromTo(".hero-intro",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 1 },
+      "-=0.6"
+    )
+    .fromTo(".hero-cta",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8 },
+      "-=0.5"
+    );
+  });
+</script>

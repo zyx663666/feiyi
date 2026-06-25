@@ -1,0 +1,600 @@
+---
+/**
+ * 木雕技艺项目页
+ * 展示木雕历史源流、流派风格、雕刻过程（AI_Animation动画）、文化内涵
+ * 联动入口：摄影/3D/视频
+ */
+import Layout from "../../components/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+import Footer from "../../components/Footer.astro";
+---
+
+<Layout title="木雕技艺 - 非遗传承">
+  <Navigation />
+
+  <!-- Hero 区 -->
+  <section class="craft-hero" id="top">
+    <div class="container">
+      <p class="craft-eyebrow">非遗 · 传统木雕技艺</p>
+      <h1 class="craft-title">木雕技艺</h1>
+      <p class="craft-subtitle">化木为灵，精雕细琢</p>
+      <p class="craft-intro">
+        从河姆渡的木雕鱼，到明清的雕梁画栋。<br />
+        一刀一凿间，化朽木为神奇，刻出千年故事。
+      </p>
+      <a href="#history" class="scroll-hint" aria-label="向下浏览">
+        <span>向下浏览</span>
+        <span class="arrow" aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 历史源流 -->
+  <section class="section craft-section" id="history">
+    <div class="container">
+      <h2 class="section-title">历史源流</h2>
+      <p class="section-subtitle">七千年木雕史，刀凿间的文明记忆</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-era">新石器时代</div>
+          <div class="timeline-content">
+            <h3>木雕起源</h3>
+            <p>河姆渡文化遗址出土的木雕鱼，是中国最早的木雕实物，距今约7000年。先民以石刀刻木，开启了木雕艺术的源头。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">商周秦汉</div>
+          <div class="timeline-content">
+            <h3>工艺奠基</h3>
+            <p>出现彩绘木雕和木俑。汉代木雕技艺成熟，马王堆汉墓出土的彩绘木俑，造型生动，是早期木雕的杰作。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">唐宋时期</div>
+          <div class="timeline-content">
+            <h3>艺术高峰</h3>
+            <p>佛教兴盛带动木雕造像艺术。唐代木雕佛像气韵生动，宋代木雕趋向写实，工艺精细，为后世流派奠定基础。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">明清时期</div>
+          <div class="timeline-content">
+            <h3>流派鼎盛</h3>
+            <p>木雕应用扩展至建筑、家具、陈设。东阳木雕、潮州木雕、黄杨木雕、龙眼木雕并称"四大木雕"，各领风骚。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 流派风格 -->
+  <section class="section craft-section section-alt" id="schools">
+    <div class="container">
+      <h2 class="section-title">流派风格</h2>
+      <p class="section-subtitle">四大木雕，各具地域风韵</p>
+
+      <div class="schools-grid">
+        <article class="school-card">
+          <div class="school-banner school-1" aria-hidden="true">
+            <span class="school-name">东阳木雕</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">浙江东阳</p>
+            <h3>白木雕王 · 满花精工</h3>
+            <p>东阳木雕被誉为"白木雕王"，以平面浮雕为主，多层次镂空见长。题材多为历史故事、吉祥图案，构图饱满，"满花"风格著称。</p>
+            <p class="school-feature">代表题材：《清明上河图》、屏风、雕花床</p>
+          </div>
+        </article>
+
+        <article class="school-card">
+          <div class="school-banner school-2" aria-hidden="true">
+            <span class="school-name">潮州木雕</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">广东潮州</p>
+            <h3>金漆木雕 · 立体镂通</h3>
+            <p>潮州木雕以"金漆木雕"闻名，多层镂通雕技法独树一帜。贴金工艺使作品金碧辉煌，立体感极强，常用于建筑装饰。</p>
+            <p class="school-feature">代表题材：蟹篓、虾篓、神龛、屏风</p>
+          </div>
+        </article>
+
+        <article class="school-card">
+          <div class="school-banner school-3" aria-hidden="true">
+            <span class="school-name">黄杨木雕</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">浙江温州</p>
+            <h3>黄杨圆润 · 小中见大</h3>
+            <p>黄杨木生长缓慢，木质细腻温润，色泽如象牙。黄杨木雕以圆雕小件为主，刀法细腻，"小中见大"，宜作案头陈设。</p>
+            <p class="school-feature">代表题材：罗汉、仕女、动物小件</p>
+          </div>
+        </article>
+
+        <article class="school-card">
+          <div class="school-banner school-4" aria-hidden="true">
+            <span class="school-name">龙眼木雕</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">福建福州</p>
+            <h3>龙眼古拙 · 伪铜风韵</h3>
+            <p>龙眼木材质坚硬，色泽古朴。龙眼木雕以人物圆雕见长，刀法苍劲，常作"仿古"处理，呈现铜器般的厚重质感。</p>
+            <p class="school-feature">代表题材：弥勒、达摩、历史人物</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 雕刻过程（AI_Animation 动画） -->
+  <section class="section craft-section" id="process">
+    <div class="container">
+      <h2 class="section-title">雕刻过程</h2>
+      <p class="section-subtitle">"三分材料，七分功夫" —— 木雕匠人的口诀</p>
+
+      <div class="animation-wrapper">
+        <iframe
+          class="process-animation"
+          src="/animations/woodcarving-process.html"
+          title="木雕雕刻过程动画"
+          loading="lazy"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>
+
+      <div class="process-steps">
+        <div class="process-step-card">
+          <span class="step-number">01</span>
+          <h3>选材</h3>
+          <p>精选樟木、黄杨、龙眼等纹理通直之木。自然阴干数年，待木性稳定方可下刀，避免成品开裂变形。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">02</span>
+          <h3>构图</h3>
+          <p>以墨为笔，在木料表面勾勒图案轮廓。胸有成竹，定下雕刻章法，是整个作品的"蓝图"。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">03</span>
+          <h3>粗雕</h3>
+          <p>打坯粗凿，大刀阔斧去除余料。凿出物象大体雏形，把握整体比例与动态，是"立骨"的关键。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">04</span>
+          <h3>细雕</h3>
+          <p>精雕细琢，刀游毫芒。衣纹、毛发、表情纤毫毕现，是匠人功力的集中体现，决定作品的精气神。</p>
+        </div>
+        <div class="process-step-card">
+          <span class="step-number">05</span>
+          <h3>打磨</h3>
+          <p>砂磨抛光，由粗到细。木表温润如玉，纹理清晰可辨。最后上蜡或上漆，保护作品并提升质感。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 文化内涵 -->
+  <section class="section craft-section section-alt" id="culture">
+    <div class="container">
+      <h2 class="section-title">文化内涵</h2>
+      <p class="section-subtitle">刀锋游走间，刻出东方意蕴</p>
+
+      <div class="culture-grid">
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">材</div>
+          <h3>因材施雕</h3>
+          <p>木雕讲究"因材施艺"，顺应木料天然形态与纹理。化瑕疵为特色，借节疤作眼，体现"天人合一"的造物哲学。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">匠</div>
+          <h3>匠心坚守</h3>
+          <p>一件木雕往往耗时数月甚至数年。匠人坐得住冷板凳，耐得住寂寞，刀刀见功，是"慢工出细活"的写照。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">俗</div>
+          <h3>民俗载体</h3>
+          <p>木雕广泛应用于建筑、家具、神像，承载着吉祥寓意与民俗信仰。八宝、博古、戏文，是民间文化的活态传承。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">雅</div>
+          <h3>雅俗共赏</h3>
+          <p>既有雕梁画栋的民间繁华，又有文人案头的清雅小品。木雕融合雅俗，是中华审美多元一体的生动体现。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 联动入口 -->
+  <section class="section craft-section" id="explore">
+    <div class="container">
+      <h2 class="section-title">深度探索</h2>
+      <p class="section-subtitle">从不同维度，继续走进木雕世界</p>
+
+      <div class="explore-grid">
+        <a href="/gallery?category=woodcarving" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">摄影</div>
+          <h3>木雕摄影</h3>
+          <p>光影记录木雕之美，纹理与刀工尽收眼底。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+        <a href="/model?category=woodcarving" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">3D</div>
+          <h3>3D 模型</h3>
+          <p>360度旋转观赏，细品木雕的每一处镂空与层次。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+        <a href="/video?category=woodcarving" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">视频</div>
+          <h3>科普视频</h3>
+          <p>记录匠人挥刀雕琢，听木屑飞溅中的匠心故事。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Hero 区 */
+  .craft-hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: var(--nav-height);
+    background: linear-gradient(135deg, rgba(90, 60, 30, 0.2) 0%, rgba(26, 26, 46, 0.8) 100%);
+    position: relative;
+  }
+
+  .craft-eyebrow {
+    font-size: 0.875rem;
+    letter-spacing: 6px;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+    text-transform: uppercase;
+  }
+
+  .craft-title {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .craft-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .craft-intro {
+    font-size: 1.0625rem;
+    line-height: 1.9;
+    color: rgba(245, 240, 232, 0.8);
+    max-width: 640px;
+    margin: 0 auto var(--spacing-xl);
+  }
+
+  .scroll-hint {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    transition: color 0.3s ease;
+  }
+
+  .scroll-hint:hover { color: var(--color-accent); }
+
+  .scroll-hint .arrow {
+    font-size: 1.5rem;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* 通用 section */
+  .craft-section { padding: var(--spacing-2xl) 0; }
+  .section-alt { background-color: rgba(26, 26, 46, 0.5); }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-text-light);
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 1.0625rem;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  /* 时间线 */
+  .timeline {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--color-accent), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 0 4px rgba(196, 163, 90, 0.2);
+  }
+
+  .timeline-era {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    letter-spacing: 2px;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .timeline-content h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .timeline-content p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  /* 流派卡片 */
+  .schools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .school-card {
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .school-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-accent);
+  }
+
+  .school-banner {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    color: rgba(245, 240, 232, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .school-1 { background: linear-gradient(135deg, #8b6b47, #5a4530); }
+  .school-2 { background: linear-gradient(135deg, #c4a35a, #8a7240); }
+  .school-3 { background: linear-gradient(135deg, #a89580, #6b5a48); }
+  .school-4 { background: linear-gradient(135deg, #6b4a3a, #4a3528); }
+
+  .school-body { padding: var(--spacing-lg); }
+
+  .school-region {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .school-body h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .school-body p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .school-feature {
+    color: var(--color-accent) !important;
+    font-size: 0.875rem !important;
+    font-style: italic;
+  }
+
+  /* 动画区 */
+  .animation-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto var(--spacing-2xl);
+    aspect-ratio: 16 / 9;
+    border: 1px solid rgba(196, 163, 90, 0.3);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #1A1A2E;
+  }
+
+  .process-animation {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* 工序卡片 */
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .process-step-card {
+    background: rgba(26, 26, 46, 0.4);
+    border-left: 3px solid var(--color-accent);
+    padding: var(--spacing-lg);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  .step-number {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .process-step-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .process-step-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 文化内涵 */
+  .culture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .culture-card {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: rgba(26, 26, 46, 0.4);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(196, 163, 90, 0.15);
+    transition: border-color 0.3s ease;
+  }
+
+  .culture-card:hover { border-color: var(--color-accent); }
+
+  .culture-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+  }
+
+  .culture-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .culture-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 联动入口 */
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .explore-card {
+    position: relative;
+    display: block;
+    padding: var(--spacing-xl);
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+  }
+
+  .explore-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-4px);
+  }
+
+  .explore-icon {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: rgba(196, 163, 90, 0.15);
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .explore-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .explore-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .explore-arrow {
+    color: var(--color-accent);
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .explore-card:hover .explore-arrow { transform: translateX(8px); }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .craft-title { font-size: 3rem; }
+    .section-title { font-size: 2rem; }
+    .timeline { padding-left: 1.5rem; }
+  }
+</style>

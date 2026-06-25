@@ -1,0 +1,600 @@
+---
+/**
+ * 刺绣工艺项目页
+ * 展示刺绣历史源流、四大名绣、针法演示（AI_Animation动画）、文化内涵
+ * 联动入口：摄影/3D/视频
+ */
+import Layout from "../../components/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+import Footer from "../../components/Footer.astro";
+---
+
+<Layout title="刺绣工艺 - 非遗传承">
+  <Navigation />
+
+  <!-- Hero 区 -->
+  <section class="craft-hero" id="top">
+    <div class="container">
+      <p class="craft-eyebrow">非遗 · 传统刺绣技艺</p>
+      <h1 class="craft-title">刺绣工艺</h1>
+      <p class="craft-subtitle">以针为笔，以线为墨</p>
+      <p class="craft-intro">
+        从史前纹身到衣裳花绣，从汉代长寿绣到明清四大名绣。<br />
+        千针万线间，绣出山河锦绣，绣出东方风韵。
+      </p>
+      <a href="#history" class="scroll-hint" aria-label="向下浏览">
+        <span>向下浏览</span>
+        <span class="arrow" aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 历史源流 -->
+  <section class="section craft-section" id="history">
+    <div class="container">
+      <h2 class="section-title">历史源流</h2>
+      <p class="section-subtitle">千针万线，绣出中华文明之美</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-era">夏商时期</div>
+          <div class="timeline-content">
+            <h3>刺绣萌芽</h3>
+            <p>刺绣古代称"针黹"，又名"针绣"。人们在史前时代用纹身、纹面美化生活，后用线将花纹缝钉在衣服上，由此创造出刺绣。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">春秋战国</div>
+          <div class="timeline-content">
+            <h3>技艺成熟</h3>
+            <p>考古发现，春秋战国的服饰已经常使用刺绣。马王堆汉墓出土的"长寿绣"，以锁针绣出卷云、枝蔓，技艺已相当高超。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">唐宋时期</div>
+          <div class="timeline-content">
+            <h3>精致化发展</h3>
+            <p>刺绣愈加精致化，观赏性刺绣迅速流行。唐代出现劈针针法，宋代刺绣从实用转向艺术，为后世名绣奠定基础。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-era">明清时期</div>
+          <div class="timeline-content">
+            <h3>四大名绣鼎盛</h3>
+            <p>在宋绣基础上发展出众多流派，苏绣、湘绣、粤绣、蜀绣并称"四大名绣"，各具地域特色，工艺达到鼎盛。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 四大名绣 -->
+  <section class="section craft-section section-alt" id="schools">
+    <div class="container">
+      <h2 class="section-title">四大名绣</h2>
+      <p class="section-subtitle">地域文化滋养下的四种刺绣之美</p>
+
+      <div class="schools-grid">
+        <article class="school-card">
+          <div class="school-banner school-1" aria-hidden="true">
+            <span class="school-name">苏绣</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">江苏苏州</p>
+            <h3>精细雅洁 · 针上工笔</h3>
+            <p>苏绣以"精、细、雅、洁"著称，针法近百种。套针是其代表，丝线可劈至1/64，色彩过渡如工笔渐变。双面绣正反同图无结，鬼斧神工。</p>
+            <p class="school-feature">代表题材：文人山水、花鸟、双面绣《猫》</p>
+          </div>
+        </article>
+
+        <article class="school-card">
+          <div class="school-banner school-2" aria-hidden="true">
+            <span class="school-name">湘绣</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">湖南长沙</p>
+            <h3>生动传神 · 针上写意</h3>
+            <p>湘绣以"鬅毛针"闻名，通过参差不齐的针脚模拟动物毛发，"毛根根竖，目灼灼睁"。色彩浓烈，擅表现狮虎猛兽的动态与神韵。</p>
+            <p class="school-feature">代表题材：狮虎、龙凤、双面全异绣</p>
+          </div>
+        </article>
+
+        <article class="school-card">
+          <div class="school-banner school-3" aria-hidden="true">
+            <span class="school-name">粤绣</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">广东广州/潮州</p>
+            <h3>华丽繁复 · 针上锦绣</h3>
+            <p>粤绣以"钉金绣"最具辨识度，金线钉于绣面，金光闪闪。垫绣使图案凸起，立体感强。色彩浓艳，构图饱满，富丽堂皇。</p>
+            <p class="school-feature">代表题材：百鸟朝凤、龙凤呈祥、戏服</p>
+          </div>
+        </article>
+
+        <article class="school-card">
+          <div class="school-banner school-4" aria-hidden="true">
+            <span class="school-name">蜀绣</span>
+          </div>
+          <div class="school-body">
+            <p class="school-region">四川成都</p>
+            <h3>清新灵动 · 针上丹青</h3>
+            <p>蜀绣以"晕针"为核心，色彩渐变自然，如水墨晕染。题材生活化，构图疏朗，兼具细腻与灵动，富有巴蜀烟火气息。</p>
+            <p class="school-feature">代表题材：芙蓉鲤鱼、熊猫竹石</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 针法演示（AI_Animation 动画） -->
+  <section class="section craft-section" id="stitches">
+    <div class="container">
+      <h2 class="section-title">针法演示</h2>
+      <p class="section-subtitle">"以针代笔，以线为墨"的艺术实践</p>
+
+      <div class="animation-wrapper">
+        <iframe
+          class="process-animation"
+          src="/animations/embroidery-stitch.html"
+          title="刺绣针法演示动画"
+          loading="lazy"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>
+
+      <div class="stitch-types">
+        <div class="stitch-card">
+          <span class="stitch-number">壹</span>
+          <h3>平针</h3>
+          <p>刺绣基本针法，针脚整齐排列，线迹均匀，不能重叠，不能露底。如丝线"写"出工整笔画，是各种针法的基础。</p>
+        </div>
+        <div class="stitch-card">
+          <span class="stitch-number">贰</span>
+          <h3>套针</h3>
+          <p>苏绣代表性针法，分层套色，短针衔接。分平套、集套、散套三种，色彩自然过渡，尤适合表现花瓣渐变与人物肌肤。</p>
+        </div>
+        <div class="stitch-card">
+          <span class="stitch-number">叁</span>
+          <h3>滚针</h3>
+          <p>两线紧连成条纹，第二针藏于第一针之下，转折处针脚略短。线条长短一律，宜勾勒流畅轮廓，常用于叶脉、枝干。</p>
+        </div>
+        <div class="stitch-card">
+          <span class="stitch-number">肆</span>
+          <h3>打籽针</h3>
+          <p>线绕针尖形成结粒，立体凸起于绣面。如花蕊点缀，富有浮雕感，是刺绣中少有的立体针法。</p>
+        </div>
+        <div class="stitch-card">
+          <span class="stitch-number">伍</span>
+          <h3>乱针绣</h3>
+          <p>20世纪初杨守玉首创，长短不一、方向不同的线条交叉重叠，模仿油画笔触。适合表现光影复杂的肖像与风景。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 文化内涵 -->
+  <section class="section craft-section section-alt" id="culture">
+    <div class="container">
+      <h2 class="section-title">文化内涵</h2>
+      <p class="section-subtitle">一针一线，绣出东方风韵</p>
+
+      <div class="culture-grid">
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">闺</div>
+          <h3>闺阁之美</h3>
+          <p>传统刺绣多为女性所作，称"女红"。一针一线，是闺阁中的修养与表达，承载着女性的温婉与智慧。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">意</div>
+          <h3>以针传情</h3>
+          <p>刺绣常作定情、馈赠之物。荷包、香囊、枕顶，每一件绣品都寄托着绣者的心意与祝福，是情感的物化。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">地</div>
+          <h3>地域风情</h3>
+          <p>苏绣的江南水乡、湘绣的湖湘豪情、粤绣的岭南繁华、蜀绣的巴蜀灵动，四大名绣折射出不同地域的文化基因。</p>
+        </div>
+        <div class="culture-card">
+          <div class="culture-icon" aria-hidden="true">新</div>
+          <h3>守正创新</h3>
+          <p>从乱针绣到双面三异绣，刺绣在传承中不断创新。当代"非遗+"模式，让古老技艺焕发新的生命力。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 联动入口 -->
+  <section class="section craft-section" id="explore">
+    <div class="container">
+      <h2 class="section-title">深度探索</h2>
+      <p class="section-subtitle">从不同维度，继续走进刺绣世界</p>
+
+      <div class="explore-grid">
+        <a href="/gallery?category=embroidery" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">摄影</div>
+          <h3>刺绣摄影</h3>
+          <p>高清细节呈现，丝线光泽与针脚纹理纤毫毕现。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+        <a href="/model?category=embroidery" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">3D</div>
+          <h3>3D 模型</h3>
+          <p>立体观赏绣品质感，感受针法凸起与丝线层次。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+        <a href="/video?category=embroidery" class="explore-card">
+          <div class="explore-icon" aria-hidden="true">视频</div>
+          <h3>科普视频</h3>
+          <p>记录绣娘飞针走线，见证一幅绣品的诞生过程。</p>
+          <span class="explore-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Hero 区 */
+  .craft-hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: var(--nav-height);
+    background: linear-gradient(135deg, rgba(196, 163, 90, 0.15) 0%, rgba(26, 26, 46, 0.8) 100%);
+    position: relative;
+  }
+
+  .craft-eyebrow {
+    font-size: 0.875rem;
+    letter-spacing: 6px;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+    text-transform: uppercase;
+  }
+
+  .craft-title {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .craft-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .craft-intro {
+    font-size: 1.0625rem;
+    line-height: 1.9;
+    color: rgba(245, 240, 232, 0.8);
+    max-width: 640px;
+    margin: 0 auto var(--spacing-xl);
+  }
+
+  .scroll-hint {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    transition: color 0.3s ease;
+  }
+
+  .scroll-hint:hover { color: var(--color-accent); }
+
+  .scroll-hint .arrow {
+    font-size: 1.5rem;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* 通用 section */
+  .craft-section { padding: var(--spacing-2xl) 0; }
+  .section-alt { background-color: rgba(26, 26, 46, 0.5); }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-text-light);
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 1.0625rem;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  /* 时间线 */
+  .timeline {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--color-accent), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 0 4px rgba(196, 163, 90, 0.2);
+  }
+
+  .timeline-era {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    letter-spacing: 2px;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .timeline-content h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .timeline-content p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+  }
+
+  /* 四大名绣卡片 */
+  .schools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .school-card {
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .school-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-accent);
+  }
+
+  .school-banner {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: rgba(245, 240, 232, 0.9);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .school-1 { background: linear-gradient(135deg, #6a8caf, #4a6b8a); }
+  .school-2 { background: linear-gradient(135deg, #c45a4a, #8a3a2a); }
+  .school-3 { background: linear-gradient(135deg, #d4a017, #b8901a); }
+  .school-4 { background: linear-gradient(135deg, #5a8a5a, #3a6a3a); }
+
+  .school-body { padding: var(--spacing-lg); }
+
+  .school-region {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .school-body h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .school-body p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .school-feature {
+    color: var(--color-accent) !important;
+    font-size: 0.875rem !important;
+    font-style: italic;
+  }
+
+  /* 动画区 */
+  .animation-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto var(--spacing-2xl);
+    aspect-ratio: 16 / 9;
+    border: 1px solid rgba(196, 163, 90, 0.3);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #1A1A2E;
+  }
+
+  .process-animation {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* 针法卡片 */
+  .stitch-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .stitch-card {
+    background: rgba(26, 26, 46, 0.4);
+    border-left: 3px solid var(--color-accent);
+    padding: var(--spacing-lg);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  .stitch-number {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .stitch-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .stitch-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 文化内涵 */
+  .culture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .culture-card {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: rgba(26, 26, 46, 0.4);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(196, 163, 90, 0.15);
+    transition: border-color 0.3s ease;
+  }
+
+  .culture-card:hover { border-color: var(--color-accent); }
+
+  .culture-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+  }
+
+  .culture-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .culture-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: 0.9375rem;
+  }
+
+  /* 联动入口 */
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .explore-card {
+    position: relative;
+    display: block;
+    padding: var(--spacing-xl);
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+  }
+
+  .explore-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-4px);
+  }
+
+  .explore-icon {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: rgba(196, 163, 90, 0.15);
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .explore-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .explore-card p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .explore-arrow {
+    color: var(--color-accent);
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .explore-card:hover .explore-arrow { transform: translateX(8px); }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .craft-title { font-size: 3rem; }
+    .section-title { font-size: 2rem; }
+    .timeline { padding-left: 1.5rem; }
+  }
+</style>

@@ -1,0 +1,21 @@
+{
+  "name": "feiyi-website",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@types/three": "^0.184.1",
+    "astro": "^5.0.0",
+    "gsap": "^3.12.5",
+    "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}

@@ -1,0 +1,269 @@
+---
+/**
+ * 非遗时间线组件
+ * 横向展示从原始到当代的非遗发展关键节点
+ */
+
+// 时间线节点数据
+const timelineNodes = [
+  { era: "原始", event: "陶器初现", detail: "先民以泥土塑形，火中成器" },
+  { era: "商周", event: "青铜与原始瓷", detail: "工艺萌芽，纹饰初具礼制" },
+  { era: "唐宋", event: "瓷艺鼎盛", detail: "青瓷白瓷争艳，刺绣趋于成熟" },
+  { era: "明清", event: "技艺大成", detail: "青花瓷走向世界，木雕流派纷呈" },
+  { era: "当代", event: "传承创新", detail: "非遗保护与现代设计融合" }
+];
+---
+
+<section class="section timeline-section" id="timeline" aria-labelledby="timeline-title">
+  <div class="container">
+    <h2 class="section-title" id="timeline-title">时光流转</h2>
+    <p class="section-subtitle">从远古走来的手艺，在时光中生生不息</p>
+
+    <div class="timeline-wrapper">
+      <div class="timeline-track" id="timeline-track">
+        {timelineNodes.map((node, index) => (
+          <div class="timeline-node" data-index={index}>
+            <div class="node-dot"></div>
+            <div class="node-content">
+              <span class="node-era">{node.era}</span>
+              <h3 class="node-event">{node.event}</h3>
+              <p class="node-detail">{node.detail}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .timeline-section {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    overflow: hidden;
+  }
+
+  .timeline-section .section-title {
+    color: var(--color-text-light);
+  }
+
+  .timeline-section .section-subtitle {
+    color: rgba(245, 240, 232, 0.7);
+  }
+
+  .timeline-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: var(--spacing-xl) 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 隐藏横向滚动条但保留滑动能力 */
+  .timeline-wrapper::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .timeline-wrapper::-webkit-scrollbar-track {
+    background: rgba(245, 240, 232, 0.1);
+    border-radius: 3px;
+  }
+
+  .timeline-wrapper::-webkit-scrollbar-thumb {
+    background: var(--color-secondary);
+    border-radius: 3px;
+  }
+
+  .timeline-track {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-2xl);
+    min-width: max-content;
+    padding: 0 var(--spacing-xl);
+  }
+
+  /* 中央连接线 */
+  .timeline-track::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--spacing-xl) + 48px);
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .timeline-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 220px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .node-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--color-bg-dark);
+    border: 3px solid var(--color-secondary);
+    margin-bottom: var(--spacing-md);
+    transition:
+      background-color 0.4s ease,
+      border-color 0.4s ease,
+      box-shadow 0.4s ease;
+    z-index: 1;
+  }
+
+  .timeline-node.active .node-dot {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 16px rgba(178, 34, 34, 0.6);
+  }
+
+  .node-content {
+    padding: var(--spacing-md);
+  }
+
+  .node-era {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .node-event {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .node-detail {
+    font-size: 0.875rem;
+    color: rgba(245, 240, 232, 0.7);
+    line-height: 1.6;
+  }
+
+  /* 移动端垂直布局 */
+  @media (max-width: 768px) {
+    .timeline-wrapper {
+      overflow-x: visible;
+      overflow-y: auto;
+    }
+
+    .timeline-track {
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-xl);
+      min-width: auto;
+      padding: 0;
+    }
+
+    .timeline-track::before {
+      display: none;
+    }
+
+    .timeline-node {
+      width: 100%;
+      max-width: 320px;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * 时间线滚动动画
+   * 桌面端：随页面滚动横向推进时间线，并依次点亮节点
+   * 移动端：节点在滚动到视口时直接显示
+   */
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const isMobile = window.innerWidth <= 768;
+    const nodes = document.querySelectorAll(".timeline-node");
+
+    if (isMobile) {
+      // 移动端：节点依次淡入
+      gsap.from(nodes, {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".timeline-section",
+          start: "top 70%",
+          toggleActions: "play none none none"
+        }
+      });
+      return;
+    }
+
+    // 桌面端：时间线轨道整体横向平移
+    const track = document.getElementById("timeline-track");
+    if (!track) return;
+
+    const trackWidth = track.scrollWidth;
+    const wrapperWidth = track.parentElement?.clientWidth || window.innerWidth;
+    const translateX = Math.max(0, trackWidth - wrapperWidth);
+
+    gsap.to(track, {
+      x: -translateX,
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".timeline-section",
+        start: "top 20%",
+        end: "bottom 80%",
+        scrub: 1,
+        pin: true,
+        anticipatePin: 1
+      }
+    });
+
+    // 节点随滚动进度依次点亮
+    nodes.forEach((node, index) => {
+      const total = nodes.length;
+      const progress = index / (total - 1);
+
+      ScrollTrigger.create({
+        trigger: ".timeline-section",
+        start: "top 20%",
+        end: "bottom 80%",
+        onUpdate: (self) => {
+          if (self.progress >= progress * 0.8) {
+            node.classList.add("active");
+          } else {
+            node.classList.remove("active");
+          }
+        }
+      });
+    });
+
+    // 初始入场淡入
+    gsap.to(nodes, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: ".timeline-section",
+        start: "top 75%",
+        toggleActions: "play none none none"
+      }
+    });
+  });
+</script>
