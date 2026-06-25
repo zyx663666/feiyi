@@ -4,6 +4,8 @@
  * 展示摄影、视频、3D、游戏四个子模块的入口卡片
  */
 
+const base = import.meta.env.BASE_URL;
+
 // 模块入口数据
 const modules = [
   {
@@ -11,8 +13,8 @@ const modules = [
     name: "摄影",
     subtitle: "Gallery",
     description: "透过镜头，记录非遗作品与传承人的真实瞬间",
-    href: Astro.resolve("/gallery"),
-    image: Astro.resolve("/images/module-gallery.jpg"),
+    href: `${base}gallery`,
+    image: `${base}images/module-gallery.jpg`,
     icon: "📷"
   },
   {
@@ -20,8 +22,8 @@ const modules = [
     name: "视频",
     subtitle: "Animation",
     description: "动画与实拍交织，讲述非遗技艺的源流与匠心",
-    href: Astro.resolve("/video"),
-    image: Astro.resolve("/images/module-video.jpg"),
+    href: `${base}video`,
+    image: `${base}images/module-video.jpg`,
     icon: ""
   },
   {
@@ -29,8 +31,8 @@ const modules = [
     name: "3D 模型",
     subtitle: "Model",
     description: "360度旋转查看非遗作品，细观每一处工艺细节",
-    href: Astro.resolve("/model"),
-    image: Astro.resolve("/images/module-3d.jpg"),
+    href: `${base}model`,
+    image: `${base}images/module-3d.jpg`,
     icon: "🔄"
   },
   {
@@ -38,8 +40,8 @@ const modules = [
     name: "游戏",
     subtitle: "Game",
     description: "亲手体验非遗制作流程，在游戏中感受匠心传承",
-    href: Astro.resolve("/game"),
-    image: Astro.resolve("/images/module-game.jpg"),
+    href: `${base}game`,
+    image: `${base}images/module-game.jpg`,
     icon: ""
   }
 ];

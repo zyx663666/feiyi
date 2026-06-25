@@ -135,7 +135,7 @@ import Footer from "../../components/Footer.astro";
       <div class="animation-wrapper">
         <iframe
           class="process-animation"
-          src={Astro.resolve("/animations/embroidery-stitch.html")}
+          src={`${import.meta.env.BASE_URL}animations/embroidery-stitch.html`}
           title="刺绣针法演示动画"
           loading="lazy"
           frameborder="0"
@@ -211,19 +211,19 @@ import Footer from "../../components/Footer.astro";
       <p class="section-subtitle">从不同维度，继续走进刺绣世界</p>
 
       <div class="explore-grid">
-        <a href={Astro.resolve("/gallery?category=embroidery")} class="explore-card">
+        <a href={`${import.meta.env.BASE_URL}gallery?category=embroidery`} class="explore-card">
           <div class="explore-icon" aria-hidden="true">摄影</div>
           <h3>刺绣摄影</h3>
           <p>高清细节呈现，丝线光泽与针脚纹理纤毫毕现。</p>
           <span class="explore-arrow">→</span>
         </a>
-        <a href={Astro.resolve("/model?category=embroidery")} class="explore-card">
+        <a href={`${import.meta.env.BASE_URL}model?category=embroidery`} class="explore-card">
           <div class="explore-icon" aria-hidden="true">3D</div>
           <h3>3D 模型</h3>
           <p>立体观赏绣品质感，感受针法凸起与丝线层次。</p>
           <span class="explore-arrow">→</span>
         </a>
-        <a href={Astro.resolve("/video?category=embroidery")} class="explore-card">
+        <a href={`${import.meta.env.BASE_URL}video?category=embroidery`} class="explore-card">
           <div class="explore-icon" aria-hidden="true">视频</div>
           <h3>科普视频</h3>
           <p>记录绣娘飞针走线，见证一幅绣品的诞生过程。</p>

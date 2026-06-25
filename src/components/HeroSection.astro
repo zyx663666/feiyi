@@ -10,7 +10,7 @@
   <!-- 水墨流动动画背景（iframe 嵌入，独立文件便于复用和调试） -->
   <iframe
     class="hero-ink-animation"
-    src={Astro.resolve("/animations/ink-flow.html")}
+    src={`${import.meta.env.BASE_URL}animations/ink-flow.html`}
     title="水墨流动背景动画"
     aria-hidden="true"
     frameborder="0"

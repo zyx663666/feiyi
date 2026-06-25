@@ -14,32 +14,34 @@ import Footer from "../components/Footer.astro";
  * category: 分类（ceramic/embroidery/woodcarving/heritage）
  * ratio: 图片宽高比（用于瀑布流高度）
  */
+const base = import.meta.env.BASE_URL;
+
 const photos = [
   // 陶瓷
-  { id: 1, title: "青花缠枝", desc: "元青花瓷瓶纹饰特写", category: "ceramic", ratio: "3/4", src: Astro.resolve("/images/gallery/ceramic/陶瓷1.jpg") },
-  { id: 2, title: "窑火千年", desc: "龙窑柴烧现场记录", category: "ceramic", ratio: "4/3", src: Astro.resolve("/images/gallery/ceramic/陶瓷2.jpg") },
-  { id: 3, title: "釉色天成", desc: "汝窑天青釉碗", category: "ceramic", ratio: "1/1", src: Astro.resolve("/images/gallery/ceramic/陶瓷3.jpg") },
-  { id: 4, title: "拉坯成形", desc: "匠人拉坯瞬间", category: "ceramic", ratio: "3/4", src: Astro.resolve("/images/gallery/ceramic/陶瓷4.jpg") },
-  { id: 5, title: "紫砂韵味", desc: "宜兴紫砂壶细节", category: "ceramic", ratio: "4/5", src: Astro.resolve("/images/gallery/ceramic/陶瓷5.jpg") },
-  { id: 6, title: "瓷韵流光", desc: "瓷器釉面光泽特写", category: "ceramic", ratio: "3/4", src: Astro.resolve("/images/gallery/ceramic/陶瓷6.jpg") },
-  { id: 7, title: "匠心独运", desc: "陶瓷制作工艺", category: "ceramic", ratio: "4/3", src: Astro.resolve("/images/gallery/ceramic/陶瓷7.jpg") },
+  { id: 1, title: "青花缠枝", desc: "元青花瓷瓶纹饰特写", category: "ceramic", ratio: "3/4", src: `${base}images/gallery/ceramic/陶瓷1.jpg` },
+  { id: 2, title: "窑火千年", desc: "龙窑柴烧现场记录", category: "ceramic", ratio: "4/3", src: `${base}images/gallery/ceramic/陶瓷2.jpg` },
+  { id: 3, title: "釉色天成", desc: "汝窑天青釉碗", category: "ceramic", ratio: "1/1", src: `${base}images/gallery/ceramic/陶瓷3.jpg` },
+  { id: 4, title: "拉坯成形", desc: "匠人拉坯瞬间", category: "ceramic", ratio: "3/4", src: `${base}images/gallery/ceramic/陶瓷4.jpg` },
+  { id: 5, title: "紫砂韵味", desc: "宜兴紫砂壶细节", category: "ceramic", ratio: "4/5", src: `${base}images/gallery/ceramic/陶瓷5.jpg` },
+  { id: 6, title: "瓷韵流光", desc: "瓷器釉面光泽特写", category: "ceramic", ratio: "3/4", src: `${base}images/gallery/ceramic/陶瓷6.jpg` },
+  { id: 7, title: "匠心独运", desc: "陶瓷制作工艺", category: "ceramic", ratio: "4/3", src: `${base}images/gallery/ceramic/陶瓷7.jpg` },
 
   // 刺绣
-  { id: 8, title: "丝线千缕", desc: "苏绣双面绣工艺", category: "embroidery", ratio: "3/4", src: Astro.resolve("/images/gallery/embroidery/刺绣1.jpg") },
-  { id: 9, title: "针走游龙", desc: "蜀绣龙纹绣片", category: "embroidery", ratio: "4/3", src: Astro.resolve("/images/gallery/embroidery/刺绣2.jpg") },
-  { id: 10, title: "锦绣山河", desc: "湘绣山水绣品", category: "embroidery", ratio: "1/1", src: Astro.resolve("/images/gallery/embroidery/刺绣3.png") },
+  { id: 8, title: "丝线千缕", desc: "苏绣双面绣工艺", category: "embroidery", ratio: "3/4", src: `${base}images/gallery/embroidery/刺绣1.jpg` },
+  { id: 9, title: "针走游龙", desc: "蜀绣龙纹绣片", category: "embroidery", ratio: "4/3", src: `${base}images/gallery/embroidery/刺绣2.jpg` },
+  { id: 10, title: "锦绣山河", desc: "湘绣山水绣品", category: "embroidery", ratio: "1/1", src: `${base}images/gallery/embroidery/刺绣3.png` },
 
   // 木雕
-  { id: 12, title: "刀木春秋", desc: "东阳木雕屏风", category: "woodcarving", ratio: "4/5", src: Astro.resolve("/images/gallery/woodcarving/wood1.jpg") },
-  { id: 13, title: "雕梁画栋", desc: "徽派建筑木雕", category: "woodcarving", ratio: "3/4", src: Astro.resolve("/images/gallery/woodcarving/wood2.jpg") },
-  { id: 14, title: "精雕细琢", desc: "黄杨木雕人物", category: "woodcarving", ratio: "1/1", src: Astro.resolve("/images/gallery/woodcarving/wood3.jpg") },
-  { id: 15, title: "木屑飞舞", desc: "匠人雕刻现场", category: "woodcarving", ratio: "4/3", src: Astro.resolve("/images/gallery/woodcarving/wood4.jpg") },
+  { id: 12, title: "刀木春秋", desc: "东阳木雕屏风", category: "woodcarving", ratio: "4/5", src: `${base}images/gallery/woodcarving/wood1.jpg` },
+  { id: 13, title: "雕梁画栋", desc: "徽派建筑木雕", category: "woodcarving", ratio: "3/4", src: `${base}images/gallery/woodcarving/wood2.jpg` },
+  { id: 14, title: "精雕细琢", desc: "黄杨木雕人物", category: "woodcarving", ratio: "1/1", src: `${base}images/gallery/woodcarving/wood3.jpg` },
+  { id: 15, title: "木屑飞舞", desc: "匠人雕刻现场", category: "woodcarving", ratio: "4/3", src: `${base}images/gallery/woodcarving/wood4.jpg` },
 
   // 传承人
-  { id: 16, title: "匠心独运", desc: "陶瓷传承人肖像", category: "heritage", ratio: "3/4", src: Astro.resolve("/images/gallery/heritage/1.jpg") },
-  { id: 17, title: "岁月留痕", desc: "老匠人的双手", category: "heritage", ratio: "4/3", src: Astro.resolve("/images/gallery/heritage/2.jpg") },
-  { id: 18, title: "薪火相传", desc: "章细莲老师", category: "heritage", ratio: "1/1", src: Astro.resolve("/images/gallery/heritage/章细莲.jpg") },
-  { id: 19, title: "守艺人", desc: "陈新华老师", category: "heritage", ratio: "3/4", src: Astro.resolve("/images/gallery/heritage/陈新华.png") },
+  { id: 16, title: "匠心独运", desc: "陶瓷传承人肖像", category: "heritage", ratio: "3/4", src: `${base}images/gallery/heritage/1.jpg` },
+  { id: 17, title: "岁月留痕", desc: "老匠人的双手", category: "heritage", ratio: "4/3", src: `${base}images/gallery/heritage/2.jpg` },
+  { id: 18, title: "薪火相传", desc: "章细莲老师", category: "heritage", ratio: "1/1", src: `${base}images/gallery/heritage/章细莲.jpg` },
+  { id: 19, title: "守艺人", desc: "陈新华老师", category: "heritage", ratio: "3/4", src: `${base}images/gallery/heritage/陈新华.png` },
 ];
 
 const categories = [

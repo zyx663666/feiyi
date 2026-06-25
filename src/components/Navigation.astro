@@ -4,32 +4,33 @@
  * 提供各页面入口，支持滚动后背景变化、非遗项目下拉菜单与移动端菜单
  */
 
+const base = import.meta.env.BASE_URL;
+
 /* 导航分组数据：非遗项目（下拉）+ 媒体展示 */
 const craftItems = [
-  { label: "陶瓷技艺", href: Astro.resolve("/crafts/ceramic") },
-  { label: "刺绣工艺", href: Astro.resolve("/crafts/embroidery") },
-  { label: "木雕技艺", href: Astro.resolve("/crafts/woodcarving") }
+  { label: "陶瓷技艺", href: `${base}crafts/ceramic` },
+  { label: "刺绣工艺", href: `${base}crafts/embroidery` },
+  { label: "木雕技艺", href: `${base}crafts/woodcarving` }
 ];
 
 const mediaItems = [
-  { label: "首页", href: Astro.resolve("/") },
-  { label: "摄影", href: Astro.resolve("/gallery") },
-  { label: "视频", href: Astro.resolve("/video") },
-  { label: "3D", href: Astro.resolve("/model") },
-  { label: "游戏", href: Astro.resolve("/game") }
+  { label: "首页", href: base },
+  { label: "摄影", href: `${base}gallery` },
+  { label: "视频", href: `${base}video` },
+  { label: "3D", href: `${base}model` },
+  { label: "游戏", href: `${base}game` }
 ];
 
 const currentPath = Astro.url.pathname;
-const basePath = Astro.resolve("/").replace(/\/$/, "");
 
 /* 判断当前路径是否属于非遗项目页 */
-const isCraftsPage = currentPath.startsWith(basePath + "/crafts");
+const isCraftsPage = currentPath.startsWith(`${base}crafts`);
 ---
 
 <nav class="navigation" id="main-nav" aria-label="主导航">
   <div class="container nav-inner">
     <!-- 站点 Logo，点击返回首页 -->
-    <a href={Astro.resolve("/")} class="nav-logo" aria-label="返回首页">
+    <a href={base} class="nav-logo" aria-label="返回首页">
       <span class="logo-text">非遗</span>
     </a>
 

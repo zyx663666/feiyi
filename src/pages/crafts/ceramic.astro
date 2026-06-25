@@ -131,7 +131,7 @@ import Footer from "../../components/Footer.astro";
       <div class="animation-wrapper">
         <iframe
           class="process-animation"
-          src={Astro.resolve("/animations/ceramic-process.html")}
+          src={`${import.meta.env.BASE_URL}animations/ceramic-process.html`}
           title="陶瓷制作流程动画"
           loading="lazy"
           frameborder="0"
@@ -207,19 +207,19 @@ import Footer from "../../components/Footer.astro";
       <p class="section-subtitle">从不同维度，继续走进陶瓷世界</p>
 
       <div class="explore-grid">
-        <a href={Astro.resolve("/gallery?category=ceramic")} class="explore-card">
+        <a href={`${import.meta.env.BASE_URL}gallery?category=ceramic`} class="explore-card">
           <div class="explore-icon" aria-hidden="true">摄影</div>
           <h3>陶瓷摄影</h3>
           <p>高清影像记录陶瓷之美，从器型到釉色，尽收眼底。</p>
           <span class="explore-arrow">→</span>
         </a>
-        <a href={Astro.resolve("/model?category=ceramic")} class="explore-card">
+        <a href={`${import.meta.env.BASE_URL}model?category=ceramic`} class="explore-card">
           <div class="explore-icon" aria-hidden="true">3D</div>
           <h3>3D 模型</h3>
           <p>360度旋转观赏，细品陶瓷的每一处曲线与纹饰。</p>
           <span class="explore-arrow">→</span>
         </a>
-        <a href={Astro.resolve("/video?category=ceramic")} class="explore-card">
+        <a href={`${import.meta.env.BASE_URL}video?category=ceramic`} class="explore-card">
           <div class="explore-icon" aria-hidden="true">视频</div>
           <h3>科普视频</h3>
           <p>影像记录匠人手作，听他们讲述泥土与火焰的故事。</p>

@@ -4,6 +4,8 @@
  * 以屏风式卡片展示陶瓷、刺绣、木雕三个非遗方向
  */
 
+const base = import.meta.env.BASE_URL;
+
 // 门类数据：名称、代表项目、简介、对应页面路径
 const categories = [
   {
@@ -11,27 +13,27 @@ const categories = [
     name: "陶瓷技艺",
     project: "青花瓷 / 汝窑",
     intro: "取大地之土，经火炼成器。千年窑火，烧就东方瓷韵。",
-    image: Astro.resolve("/images/category-ceramic.jpg"),
+    image: `${base}images/category-ceramic.jpg`,
     alt: "青花瓷瓶图片",
-    href: Astro.resolve("/crafts/ceramic")
+    href: `${base}crafts/ceramic`
   },
   {
     id: "embroidery",
     name: "刺绣工艺",
     project: "苏绣 / 蜀绣",
     intro: "以针为笔，以线为墨。一针一线，绣出山河锦绣。",
-    image: Astro.resolve("/images/category-embroidery.jpg"),
+    image: `${base}images/category-embroidery.jpg`,
     alt: "刺绣作品图片",
-    href: Astro.resolve("/crafts/embroidery")
+    href: `${base}crafts/embroidery`
   },
   {
     id: "woodcarving",
     name: "木雕技艺",
     project: "东阳木雕 / 潮州木雕",
     intro: "化木为灵，精雕细琢。刀锋游走间，故事栩栩如生。",
-    image: Astro.resolve("/images/category-woodcarving.jpg"),
+    image: `${base}images/category-woodcarving.jpg`,
     alt: "木雕摆件图片",
-    href: Astro.resolve("/crafts/woodcarving")
+    href: `${base}crafts/woodcarving`
   }
 ];
 ---
