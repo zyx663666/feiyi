@@ -16,7 +16,7 @@ import Footer from "../components/Footer.astro";
     <!-- 顶部标题栏 -->
     <header class="game-header">
       <div class="header-left">
-        <a href="/" class="back-btn" aria-label="返回首页">←</a>
+        <a href={Astro.resolve("/")} class="back-btn" aria-label="返回首页">←</a>
         <div class="title-area">
           <h1 class="game-title">陶瓷拉坯模拟器</h1>
           <p class="game-subtitle">指尖塑泥 · 复刻千年器型</p>
@@ -24,9 +24,9 @@ import Footer from "../components/Footer.astro";
       </div>
       <div class="header-right">
         <nav class="game-tabs">
-          <a href="/game" class="tab-btn active">拉坯模拟器</a>
-          <a href="/game/embroidery" class="tab-btn">刺绣挑战</a>
-          <a href="/game/glaze" class="tab-btn">釉色调配</a>
+          <a href={Astro.resolve("/game")} class="tab-btn active">拉坯模拟器</a>
+          <a href={Astro.resolve("/game/embroidery")} class="tab-btn">刺绣挑战</a>
+          <a href={Astro.resolve("/game/glaze")} class="tab-btn">釉色调配</a>
         </nav>
         <button class="header-btn" id="reset-btn" title="重置">↻</button>
       </div>

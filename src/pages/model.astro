@@ -15,7 +15,7 @@ import Footer from "../components/Footer.astro";
   <main class="model-main">
     <header class="model-header">
       <div class="header-left">
-        <a href="/" class="back-btn" aria-label="返回首页">←</a>
+        <a href={Astro.resolve("/")} class="back-btn" aria-label="返回首页">←</a>
         <div class="title-area">
           <h1 class="model-title">3D 作品展示</h1>
           <p class="model-subtitle">千年器物 · 触手可及</p>
@@ -1055,12 +1055,12 @@ import Footer from "../components/Footer.astro";
     // 创建新模型
     setTimeout(() => {
       switch(key) {
-        case 'vase': loadGLBModel('/models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
+        case 'vase': loadGLBModel(import.meta.env.BASE_URL + 'models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
         case 'teapot': currentModel = createTeapot(); break;
         case 'bowl': currentModel = createBowl(); break;
         case 'woodfish': currentModel = createWoodFish(); break;
         case 'incense': currentModel = createIncenseBurner(); break;
-        default: loadGLBModel('/models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
+        default: loadGLBModel(import.meta.env.BASE_URL + 'models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
       }
 
       scene.add(currentModel);

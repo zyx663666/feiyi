@@ -11,27 +11,27 @@ const categories = [
     name: "陶瓷技艺",
     project: "青花瓷 / 汝窑",
     intro: "取大地之土，经火炼成器。千年窑火，烧就东方瓷韵。",
-    image: "/images/category-ceramic.jpg",
+    image: Astro.resolve("/images/category-ceramic.jpg"),
     alt: "青花瓷瓶图片",
-    href: "/crafts/ceramic"
+    href: Astro.resolve("/crafts/ceramic")
   },
   {
     id: "embroidery",
     name: "刺绣工艺",
     project: "苏绣 / 蜀绣",
     intro: "以针为笔，以线为墨。一针一线，绣出山河锦绣。",
-    image: "/images/category-embroidery.jpg",
+    image: Astro.resolve("/images/category-embroidery.jpg"),
     alt: "刺绣作品图片",
-    href: "/crafts/embroidery"
+    href: Astro.resolve("/crafts/embroidery")
   },
   {
     id: "woodcarving",
     name: "木雕技艺",
     project: "东阳木雕 / 潮州木雕",
     intro: "化木为灵，精雕细琢。刀锋游走间，故事栩栩如生。",
-    image: "/images/category-woodcarving.jpg",
+    image: Astro.resolve("/images/category-woodcarving.jpg"),
     alt: "木雕摆件图片",
-    href: "/crafts/woodcarving"
+    href: Astro.resolve("/crafts/woodcarving")
   }
 ];
 ---
