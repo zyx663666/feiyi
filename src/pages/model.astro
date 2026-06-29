@@ -158,19 +158,19 @@ import Footer from "../components/Footer.astro";
 
 <style>
   :root {
-    --clay: #8B4513;
-    --clay-light: #C4A35A;
-    --silk: #c4452a;
-    --paper: #f4f1ea;
-    --ink: #2c2418;
-    --paper-dark: #e8e0d0;
-    --gray: #7a7268;
+    --clay: #C4A35A;
+    --clay-light: #D4B872;
+    --silk: #E8B86A;
+    --paper: rgba(26, 26, 46, 0.78);
+    --ink: #F5F0E8;
+    --paper-dark: rgba(196, 163, 90, 0.25);
+    --gray: rgba(245, 240, 232, 0.6);
   }
 
   .model-main {
     min-height: 100vh;
     padding-top: var(--nav-height);
-    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    background: transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -200,10 +200,10 @@ import Footer from "../components/Footer.astro";
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: white;
+    background: rgba(26, 26, 46, 0.85);
     color: var(--clay);
     font-size: 1.2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     transition: all 0.2s;
   }
 
@@ -231,11 +231,11 @@ import Footer from "../components/Footer.astro";
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: white;
+    background: rgba(26, 26, 46, 0.85);
     color: var(--clay);
     font-size: 1rem;
     font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     transition: all 0.2s;
     cursor: pointer;
     border: none;
@@ -254,12 +254,22 @@ import Footer from "../components/Footer.astro";
   }
 
   .panel {
-    background: white;
+    /* 面板使用不透明浅棕黄底色，并在面板内恢复浅色主题变量以保证文字可读 */
+    background: #EFE0BE;
+    border: 1px solid rgba(139, 69, 19, 0.2);
     border-radius: 12px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
     padding: 20px;
     display: flex;
     flex-direction: column;
+    --ink: #2c2418;
+    --gray: #7a7268;
+    --paper: #f7f0df;
+    --paper-dark: #e0d4b8;
+    --clay: #8B4513;
+    --clay-light: #C4A35A;
+    --silk: #c4452a;
+    color: #2c2418;
   }
 
   .panel-title {
@@ -296,11 +306,11 @@ import Footer from "../components/Footer.astro";
     transition: all 0.2s;
   }
 
-  .model-card:hover { background: #faf8f3; }
+  .model-card:hover { background: rgba(196, 163, 90, 0.1); }
 
   .model-card.active {
     border-color: var(--clay);
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.18);
   }
 
   .model-card-icon {
@@ -346,7 +356,7 @@ import Footer from "../components/Footer.astro";
     width: 100%;
     height: 100%;
     min-height: 600px;
-    background: radial-gradient(ellipse at center, #faf8f3 0%, #e8e0d0 100%);
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d1a 100%);
     border-radius: 12px;
     overflow: hidden;
   }
@@ -364,7 +374,7 @@ import Footer from "../components/Footer.astro";
   .loading-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(244, 241, 234, 0.9);
+    background: rgba(26, 26, 46, 0.92);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -555,7 +565,7 @@ import Footer from "../components/Footer.astro";
 
   .hotspot-info {
     padding: 8px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 6px;
     min-height: 60px;
   }
@@ -708,7 +718,7 @@ import Footer from "../components/Footer.astro";
   function initThree() {
     // 场景
     scene = new THREE.Scene();
-    scene.background = null;
+    scene.background = new THREE.Color(0x1a1a2e);
 
     // 相机
     const width = container.clientWidth;
@@ -1056,10 +1066,10 @@ import Footer from "../components/Footer.astro";
     setTimeout(() => {
       switch(key) {
         case 'vase': loadGLBModel(import.meta.env.BASE_URL + 'models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
-        case 'teapot': currentModel = createTeapot(); break;
-        case 'bowl': currentModel = createBowl(); break;
-        case 'woodfish': currentModel = createWoodFish(); break;
-        case 'incense': currentModel = createIncenseBurner(); break;
+        case 'teapot': loadGLBModel(import.meta.env.BASE_URL + 'models/zisha-teapot.glb'); return;
+        case 'bowl': loadGLBModel(import.meta.env.BASE_URL + 'models/ruyao-tianqing.glb'); return;
+        case 'woodfish': loadGLBModel(import.meta.env.BASE_URL + 'models/wood-fish.glb'); return;
+        case 'incense': loadGLBModel(import.meta.env.BASE_URL + 'models/boshan-furnace.glb'); return;
         default: loadGLBModel(import.meta.env.BASE_URL + 'models/qinghuaci/1k_1986.85_jar_with_dragon_design (2).glb'); return;
       }
 
@@ -1078,9 +1088,21 @@ import Footer from "../components/Footer.astro";
       url,
       (gltf) => {
         currentModel = gltf.scene;
-        // 调整模型大小和位置
-        currentModel.scale.set(2.5, 2.5, 2.5);
-        currentModel.position.set(0, 0, 0);
+        // 自动归一化：计算包围盒，将模型缩放到统一尺寸并居中
+        const box = new THREE.Box3().setFromObject(currentModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        // 目标最大边长为 3 个单位
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        const targetSize = 3;
+        const scale = targetSize / maxDim;
+        currentModel.scale.setScalar(scale);
+        // 缩放后重新计算中心并平移到原点
+        currentModel.position.x = -center.x * scale;
+        currentModel.position.y = -center.y * scale;
+        currentModel.position.z = -center.z * scale;
         scene.add(currentModel);
         loadingOverlay.classList.add('hidden');
         updateExhibitInfo(currentExhibitKey);

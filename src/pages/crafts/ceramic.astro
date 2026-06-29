@@ -12,9 +12,22 @@ import Footer from "../../components/Footer.astro";
 <Layout title="陶瓷技艺 - 非遗传承">
   <Navigation />
 
-  <!-- Hero 区：标题与简介 -->
-  <section class="craft-hero" id="top">
-    <div class="container">
+  <!-- Hero 区：背景图 + 水波纹涟漪 -->
+  <section
+    class="craft-hero"
+    id="top"
+    data-ripple
+    style={`background-image: url('${import.meta.env.BASE_URL}images/backgrounds/ceramic-bg.png');`}
+  >
+    <!-- 渐变遮罩：加深处理，确保文字在浅色背景上清晰可读 -->
+    <div
+      class="craft-hero-overlay"
+      style="background: linear-gradient(180deg, rgba(15,20,30,0.55) 0%, rgba(15,20,30,0.4) 40%, rgba(15,20,30,0.75) 100%);"
+    ></div>
+    <!-- 水波纹 canvas -->
+    <canvas class="ripple-canvas" aria-hidden="true"></canvas>
+
+    <div class="container craft-hero-content">
       <p class="craft-eyebrow">非遗 · 陶瓷烧造技艺</p>
       <h1 class="craft-title">陶瓷技艺</h1>
       <p class="craft-subtitle">取大地之土，经火炼成器</p>
@@ -76,9 +89,7 @@ import Footer from "../../components/Footer.astro";
 
       <div class="works-grid">
         <article class="work-card">
-          <div class="work-image work-image-1" aria-hidden="true">
-            <span class="work-placeholder">青花</span>
-          </div>
+          <div class="work-image work-image-1" style={`background-image: url('${import.meta.env.BASE_URL}images/backgrounds/ceramic-work-yuanqinghua.png');`} aria-hidden="true"></div>
           <div class="work-body">
             <h3>元青花四爱图梅瓶</h3>
             <p class="work-era">元代 · 景德镇窑</p>
@@ -87,9 +98,7 @@ import Footer from "../../components/Footer.astro";
         </article>
 
         <article class="work-card">
-          <div class="work-image work-image-2" aria-hidden="true">
-            <span class="work-placeholder">汝窑</span>
-          </div>
+          <div class="work-image work-image-2" style={`background-image: url('${import.meta.env.BASE_URL}images/backgrounds/ceramic-work-ruyao.png');`} aria-hidden="true"></div>
           <div class="work-body">
             <h3>汝窑天青釉</h3>
             <p class="work-era">宋代 · 五大名窑之首</p>
@@ -98,9 +107,7 @@ import Footer from "../../components/Footer.astro";
         </article>
 
         <article class="work-card">
-          <div class="work-image work-image-3" aria-hidden="true">
-            <span class="work-placeholder">粉彩</span>
-          </div>
+          <div class="work-image work-image-3" style={`background-image: url('${import.meta.env.BASE_URL}images/backgrounds/ceramic-work-fencai.png');`} aria-hidden="true"></div>
           <div class="work-body">
             <h3>清乾隆粉彩百花尊</h3>
             <p class="work-era">清代 · 景德镇御窑</p>
@@ -109,9 +116,7 @@ import Footer from "../../components/Footer.astro";
         </article>
 
         <article class="work-card">
-          <div class="work-image work-image-4" aria-hidden="true">
-            <span class="work-placeholder">建盏</span>
-          </div>
+          <div class="work-image work-image-4" style={`background-image: url('${import.meta.env.BASE_URL}images/backgrounds/ceramic-work-jianzhan.png');`} aria-hidden="true"></div>
           <div class="work-body">
             <h3>建窑建盏</h3>
             <p class="work-era">宋代 · 福建建阳</p>
@@ -232,17 +237,61 @@ import Footer from "../../components/Footer.astro";
   <Footer />
 </Layout>
 
+<script>
+  /**
+   * 初始化工艺页交互效果：背景图水波纹 + 全局粒子跟随
+   */
+  import { initCraftEffects } from "../../scripts/craft-effects";
+  document.addEventListener("DOMContentLoaded", initCraftEffects);
+</script>
+
 <style>
-  /* Hero 区 */
+  /* Hero 区：背景图 banner + 水波纹容器 */
   .craft-hero {
+    position: relative;
     min-height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding-top: var(--nav-height);
-    background: linear-gradient(135deg, rgba(139, 90, 43, 0.15) 0%, rgba(26, 26, 46, 0.8) 100%);
+    background-size: cover;
+    /* 陶瓷背景图下半部分有内容，调整为居中偏下显示 */
+    background-position: center 60%;
+    background-attachment: fixed;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  /* 移动端禁用 fixed 背景，避免性能问题 */
+  @media (max-width: 768px) {
+    .craft-hero {
+      background-attachment: scroll;
+      min-height: 70vh;
+    }
+  }
+
+  /* 渐变遮罩层 */
+  .craft-hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* 水波纹 canvas */
+  .ripple-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Hero 内容容器 */
+  .craft-hero-content {
     position: relative;
+    z-index: 3;
+    padding: 0 var(--spacing-md);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
   }
 
   .craft-eyebrow {
@@ -258,7 +307,7 @@ import Footer from "../../components/Footer.astro";
     font-size: 5rem;
     color: var(--color-text-light);
     margin-bottom: var(--spacing-sm);
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 0 60px rgba(0, 0, 0, 0.4);
     text-align: center;
   }
 
@@ -267,14 +316,16 @@ import Footer from "../../components/Footer.astro";
     font-size: 1.5rem;
     color: var(--color-accent);
     margin-bottom: var(--spacing-xl);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
   }
 
   .craft-intro {
     font-size: 1.0625rem;
     line-height: 1.9;
-    color: rgba(245, 240, 232, 0.8);
+    color: rgba(245, 240, 232, 0.9);
     max-width: 640px;
     margin: 0 auto var(--spacing-xl);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   }
 
   .scroll-hint {
@@ -400,19 +451,11 @@ import Footer from "../../components/Footer.astro";
   }
 
   .work-image {
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    color: rgba(245, 240, 232, 0.4);
+    height: 220px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
-
-  .work-image-1 { background: linear-gradient(135deg, #1e3a5f, #2c5282); }
-  .work-image-2 { background: linear-gradient(135deg, #4a5c6a, #7a8a95); }
-  .work-image-3 { background: linear-gradient(135deg, #8b4a6f, #c4719c); }
-  .work-image-4 { background: linear-gradient(135deg, #2d2d2d, #4a4a4a); }
 
   .work-body {
     padding: var(--spacing-lg);
@@ -441,7 +484,7 @@ import Footer from "../../components/Footer.astro";
   .animation-wrapper {
     position: relative;
     width: 100%;
-    max-width: 1000px;
+    max-width: 1400px;
     margin: 0 auto var(--spacing-2xl);
     aspect-ratio: 16 / 9;
     border: 1px solid rgba(196, 163, 90, 0.3);

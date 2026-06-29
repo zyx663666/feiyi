@@ -7,6 +7,7 @@
 const base = import.meta.env.BASE_URL;
 
 // 模块入口数据
+// 图片使用 backgrounds 文件夹下对应模块的主题图（gallery-module.png 等）
 const modules = [
   {
     id: "gallery",
@@ -14,7 +15,7 @@ const modules = [
     subtitle: "Gallery",
     description: "透过镜头，记录非遗作品与传承人的真实瞬间",
     href: `${base}gallery`,
-    image: `${base}images/module-gallery.jpg`,
+    image: `${base}images/backgrounds/gallery-module.png`,
     icon: "📷"
   },
   {
@@ -23,7 +24,7 @@ const modules = [
     subtitle: "Animation",
     description: "动画与实拍交织，讲述非遗技艺的源流与匠心",
     href: `${base}video`,
-    image: `${base}images/module-video.jpg`,
+    image: `${base}images/backgrounds/video-module.png`,
     icon: ""
   },
   {
@@ -32,7 +33,7 @@ const modules = [
     subtitle: "Model",
     description: "360度旋转查看非遗作品，细观每一处工艺细节",
     href: `${base}model`,
-    image: `${base}images/module-3d.jpg`,
+    image: `${base}images/backgrounds/model-module.png`,
     icon: "🔄"
   },
   {
@@ -41,7 +42,7 @@ const modules = [
     subtitle: "Game",
     description: "亲手体验非遗制作流程，在游戏中感受匠心传承",
     href: `${base}game`,
-    image: `${base}images/module-game.jpg`,
+    image: `${base}images/backgrounds/game-module.png`,
     icon: ""
   }
 ];
@@ -79,7 +80,14 @@ const modules = [
 
 <style>
   .module-section {
-    background-color: var(--color-bg-light);
+    /* 背景透明，让全局点阵背景透出来 */
+    background-color: transparent;
+  }
+
+  /* 标题文字在深色点阵背景上使用浅色 */
+  .module-section .section-title,
+  .module-section .section-subtitle {
+    color: var(--color-text-light);
   }
 
   .module-grid {
@@ -88,12 +96,13 @@ const modules = [
     gap: var(--spacing-lg);
   }
 
+  /* 模块卡片：半透明深色背景，点阵可隐约透出 */
   .module-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    background-color: var(--color-bg-light);
-    border: 1px solid rgba(139, 69, 19, 0.2);
+    background-color: rgba(26, 26, 46, 0.78);
+    border: 1px solid rgba(196, 163, 90, 0.35);
     border-radius: var(--radius-md);
     overflow: hidden;
     transition:
@@ -106,8 +115,8 @@ const modules = [
 
   .module-card:hover {
     transform: translateY(-6px) scale(1.02);
-    border-color: var(--color-primary);
-    box-shadow: 0 16px 40px rgba(139, 69, 19, 0.15);
+    border-color: var(--color-secondary);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   }
 
   .module-icon {
@@ -148,7 +157,7 @@ const modules = [
   .module-subtitle {
     font-size: 0.75rem;
     letter-spacing: 0.15em;
-    color: var(--color-text-secondary);
+    color: rgba(245, 240, 232, 0.6);
     text-transform: uppercase;
     margin-bottom: var(--spacing-xs);
   }
@@ -156,13 +165,13 @@ const modules = [
   .module-name {
     font-family: var(--font-heading);
     font-size: 1.375rem;
-    color: var(--color-primary);
+    color: var(--color-text-light);
     margin-bottom: var(--spacing-sm);
   }
 
   .module-description {
     font-size: 0.875rem;
-    color: var(--color-text-secondary);
+    color: rgba(245, 240, 232, 0.75);
     line-height: 1.7;
     margin-bottom: var(--spacing-md);
     flex: 1;
@@ -170,7 +179,7 @@ const modules = [
 
   .module-cta {
     font-size: 0.875rem;
-    color: var(--color-accent);
+    color: var(--color-secondary);
     font-weight: 700;
     transition: color 0.3s ease;
   }

@@ -1,0 +1,297 @@
+---
+/**
+ * 交互式 Canvas 背景 - 非遗网站专用
+ *
+ * 效果：自由漂浮粒子 + 粒子间连线 + 鼠标引力连线
+ * 色调：米白色 / 暖金色 / 墨黑色
+ * 参考：particles.js / canvas-nest / 现代高端网站背景
+ */
+---
+
+<canvas id="bg-particle-canvas" aria-hidden="true"></canvas>
+
+<script>
+  /**
+   * 漂浮粒子蛛网背景
+   * - 粒子自由漂浮（有速度、边界反弹）
+   * - 粒子之间近距离自动连线（蛛网效果）
+   * - 鼠标附近粒子被轻微吸引 + 连线
+   * - 鼠标离开后粒子恢复自由运动
+   */
+  class ParticleNetwork {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private particles: Particle[] = [];
+    private mouse = { x: -9999, y: -9999, active: false };
+    private rafId: number = 0;
+    private isDark = false;
+    private connectionDistance = 130;
+    private mouseRadius = 180;
+
+    constructor(canvas: HTMLCanvasElement) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext("2d")!;
+      this.detectTheme();
+      this.resize();
+      this.bindEvents();
+      this.animate();
+    }
+
+    private detectTheme() {
+      this.isDark =
+        document.documentElement.getAttribute("data-theme") !== "dark";
+      // 默认非遗网站是深色背景，所以 isDark=true 表示深色模式
+      // data-theme 不为 "dark" 时也视为深色（因为网站默认深色背景）
+      this.isDark = true;
+    }
+
+    /** 根据屏幕尺寸生成粒子 */
+    private createParticles() {
+      this.particles = [];
+      // 根据屏幕面积自适应粒子数量，密度适中
+      const area = this.canvas.width * this.canvas.height;
+      const count = Math.min(Math.floor(area / 14000), 120);
+
+      for (let i = 0; i < count; i++) {
+        this.particles.push({
+          x: Math.random() * this.canvas.width,
+          y: Math.random() * this.canvas.height,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          radius: 1 + Math.random() * 1.5,
+          opacity: 0.15 + Math.random() * 0.25,
+          goldShift: Math.random(),
+        });
+      }
+    }
+
+    private resize() {
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+      this.createParticles();
+    }
+
+    private bindEvents() {
+      window.addEventListener("mousemove", (e) => {
+        this.mouse.x = e.clientX;
+        this.mouse.y = e.clientY;
+        this.mouse.active = true;
+      });
+
+      window.addEventListener("mouseleave", () => {
+        this.mouse.active = false;
+        this.mouse.x = -9999;
+        this.mouse.y = -9999;
+      });
+
+      window.addEventListener("resize", () => {
+        this.resize();
+      });
+    }
+
+    /** 获取粒子颜色 */
+    private getParticleColor(opacity: number, goldShift: number): string {
+      // 暖金到米白色调
+      const r = Math.round(220 + goldShift * 30);
+      const g = Math.round(200 + goldShift * 35);
+      const b = Math.round(160 + goldShift * 60);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+
+    /** 获取连线颜色 */
+    private getLineColor(opacity: number): string {
+      // 暖金色连线
+      return `rgba(200, 175, 120, ${opacity})`;
+    }
+
+    /** 获取鼠标连线颜色 */
+    private getMouseLineColor(opacity: number): string {
+      return `rgba(230, 200, 140, ${opacity})`;
+    }
+
+    private animate = () => {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+      // 更新粒子位置
+      for (const p of this.particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // 边界反弹
+        if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+
+        // 鼠标引力：轻微吸引
+        if (this.mouse.active) {
+          const dx = this.mouse.x - p.x;
+          const dy = this.mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < this.mouseRadius && dist > 0) {
+            const force = (1 - dist / this.mouseRadius) * 0.02;
+            p.vx += (dx / dist) * force;
+            p.vy += (dy / dist) * force;
+          }
+        }
+
+        // 速度阻尼，防止越来越快
+        p.vx *= 0.99;
+        p.vy *= 0.99;
+
+        // 最低速度保障，避免粒子静止
+        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (speed < 0.15) {
+          p.vx += (Math.random() - 0.5) * 0.05;
+          p.vy += (Math.random() - 0.5) * 0.05;
+        }
+      }
+
+      // 绘制粒子间连线（蛛网效果）
+      for (let i = 0; i < this.particles.length; i++) {
+        const p1 = this.particles[i];
+
+        // 与后续粒子的连线
+        for (let j = i + 1; j < this.particles.length; j++) {
+          const p2 = this.particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < this.connectionDistance) {
+            const opacity = (1 - dist / this.connectionDistance) * 0.12;
+            this.ctx.beginPath();
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.lineTo(p2.x, p2.y);
+            this.ctx.strokeStyle = this.getLineColor(opacity);
+            this.ctx.lineWidth = 0.5;
+            this.ctx.stroke();
+          }
+        }
+
+        // 鼠标与粒子的连线
+        if (this.mouse.active) {
+          const dx = p1.x - this.mouse.x;
+          const dy = p1.y - this.mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < this.mouseRadius) {
+            const opacity = (1 - dist / this.mouseRadius) * 0.3;
+            this.ctx.beginPath();
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.lineTo(this.mouse.x, this.mouse.y);
+            this.ctx.strokeStyle = this.getMouseLineColor(opacity);
+            this.ctx.lineWidth = 0.8;
+            this.ctx.stroke();
+          }
+        }
+      }
+
+      // 绘制粒子
+      for (const p of this.particles) {
+        // 鼠标附近粒子放大
+        let drawRadius = p.radius;
+        let drawOpacity = p.opacity;
+        if (this.mouse.active) {
+          const dx = p.x - this.mouse.x;
+          const dy = p.y - this.mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < this.mouseRadius) {
+            const boost = 1 - dist / this.mouseRadius;
+            drawRadius = p.radius * (1 + boost * 1.5);
+            drawOpacity = p.opacity + boost * 0.3;
+          }
+        }
+
+        // 光晕
+        if (drawRadius > p.radius * 1.3) {
+          const glow = this.ctx.createRadialGradient(
+            p.x,
+            p.y,
+            0,
+            p.x,
+            p.y,
+            drawRadius * 3
+          );
+          glow.addColorStop(0, this.getParticleColor(drawOpacity * 0.3, p.goldShift));
+          glow.addColorStop(1, this.getParticleColor(0, p.goldShift));
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, drawRadius * 3, 0, Math.PI * 2);
+          this.ctx.fillStyle = glow;
+          this.ctx.fill();
+        }
+
+        // 粒子核心
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, drawRadius, 0, Math.PI * 2);
+        this.ctx.fillStyle = this.getParticleColor(drawOpacity, p.goldShift);
+        this.ctx.fill();
+      }
+
+      // 鼠标位置光晕
+      if (this.mouse.active) {
+        const mouseGlow = this.ctx.createRadialGradient(
+          this.mouse.x,
+          this.mouse.y,
+          0,
+          this.mouse.x,
+          this.mouse.y,
+          this.mouseRadius
+        );
+        mouseGlow.addColorStop(0, "rgba(230, 200, 140, 0.04)");
+        mouseGlow.addColorStop(1, "rgba(230, 200, 140, 0)");
+        this.ctx.beginPath();
+        this.ctx.arc(
+          this.mouse.x,
+          this.mouse.y,
+          this.mouseRadius,
+          0,
+          Math.PI * 2
+        );
+        this.ctx.fillStyle = mouseGlow;
+        this.ctx.fill();
+      }
+
+      this.rafId = requestAnimationFrame(this.animate);
+    };
+  }
+
+  interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+    opacity: number;
+    goldShift: number;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById(
+      "bg-particle-canvas"
+    ) as HTMLCanvasElement;
+    if (canvas) {
+      new ParticleNetwork(canvas);
+    }
+  });
+</script>
+
+<style>
+  #bg-particle-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  :global(body) {
+    position: relative;
+  }
+
+  /* 页面内容统一压在 canvas 之上；排除固定悬浮的 UI 组件与自定义背景 canvas，避免破坏其 fixed 定位 */
+  :global(body > *:not(#bg-particle-canvas):not(#dot-matrix-canvas):not(nav):not(.music-player-wrap):not(.theme-toggle):not(.theme-panel):not(.theme-overlay)) {
+    position: relative;
+    z-index: 1;
+  }
+</style>

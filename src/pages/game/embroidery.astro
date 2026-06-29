@@ -25,6 +25,7 @@ import Footer from "../../components/Footer.astro";
           <a href={`${import.meta.env.BASE_URL}game`} class="tab-btn">拉坯模拟器</a>
           <a href={`${import.meta.env.BASE_URL}game/embroidery`} class="tab-btn active">刺绣挑战</a>
           <a href={`${import.meta.env.BASE_URL}game/glaze`} class="tab-btn">釉色调配</a>
+          <a href={`${import.meta.env.BASE_URL}game/quiz`} class="tab-btn">益智答题</a>
         </nav>
         <button class="header-btn" id="reset-btn" title="重置">↻</button>
       </div>
@@ -178,19 +179,19 @@ import Footer from "../../components/Footer.astro";
 
 <style>
   :root {
-    --silk: #c4452a;
+    --silk: #E8B86A;
     --silk-light: #e8a090;
     --silk-gold: #C4A35A;
-    --paper: #f4f1ea;
-    --ink: #2c2418;
-    --paper-dark: #e8e0d0;
-    --gray: #7a7268;
+    --paper: rgba(26, 26, 46, 0.78);
+    --ink: #F5F0E8;
+    --paper-dark: rgba(196, 163, 90, 0.25);
+    --gray: rgba(245, 240, 232, 0.6);
   }
 
   .game-main {
     min-height: 100vh;
     padding-top: var(--nav-height);
-    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    background: transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -220,7 +221,7 @@ import Footer from "../../components/Footer.astro";
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: white;
+    background: var(--paper);
     color: var(--silk);
     font-size: 1.2rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -254,7 +255,7 @@ import Footer from "../../components/Footer.astro";
   .game-tabs {
     display: flex;
     gap: 4px;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0,0,0,0.35);
     border-radius: 8px;
     padding: 3px;
   }
@@ -282,7 +283,7 @@ import Footer from "../../components/Footer.astro";
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: white;
+    background: var(--paper);
     color: var(--silk);
     font-size: 1rem;
     font-weight: 700;
@@ -307,12 +308,22 @@ import Footer from "../../components/Footer.astro";
   }
 
   .panel {
-    background: white;
+    /* 面板使用不透明浅棕黄底色，并在面板内恢复浅色主题变量以保证文字可读 */
+    background: #EFE0BE;
+    border: 1px solid rgba(139, 69, 19, 0.2);
     border-radius: 12px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
     padding: 20px;
     display: flex;
     flex-direction: column;
+    --ink: #2c2418;
+    --gray: #7a7268;
+    --paper: #f7f0df;
+    --paper-dark: #e0d4b8;
+    --silk: #c4452a;
+    --silk-light: #e8a090;
+    --silk-gold: #C4A35A;
+    color: #2c2418;
   }
 
   .panel-title {
@@ -339,7 +350,7 @@ import Footer from "../../components/Footer.astro";
   }
 
   #preview-canvas {
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
   }
 
@@ -377,7 +388,7 @@ import Footer from "../../components/Footer.astro";
     align-items: center;
     gap: 10px;
     padding: 10px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
     border-left: 3px solid var(--silk);
   }
@@ -411,7 +422,7 @@ import Footer from "../../components/Footer.astro";
     align-items: center;
     gap: 4px;
     padding: 8px;
-    background: white;
+    background: var(--paper);
     border-radius: 8px;
     border: 2px solid transparent;
     cursor: pointer;
@@ -424,7 +435,7 @@ import Footer from "../../components/Footer.astro";
 
   .pattern-card.active {
     border-color: var(--silk);
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
   }
 
   .pattern-card span {
@@ -451,7 +462,7 @@ import Footer from "../../components/Footer.astro";
   }
 
   #game-canvas {
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
     cursor: crosshair;
     touch-action: none;
@@ -513,7 +524,7 @@ import Footer from "../../components/Footer.astro";
     font-weight: 700;
     cursor: pointer;
     border: 2px solid var(--silk);
-    background: white;
+    background: var(--paper);
     color: var(--silk);
     transition: all 0.2s;
     white-space: nowrap;
@@ -615,7 +626,7 @@ import Footer from "../../components/Footer.astro";
     align-items: flex-start;
     gap: 8px;
     padding: 10px 12px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
     font-size: 0.75rem;
     color: var(--gray);
@@ -627,7 +638,7 @@ import Footer from "../../components/Footer.astro";
   .help-inline {
     margin-top: 12px;
     padding: 12px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
     border-left: 3px solid var(--silk);
   }
@@ -709,7 +720,7 @@ import Footer from "../../components/Footer.astro";
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0,0,0,0.35);
     color: var(--ink);
     font-size: 1.4rem;
     cursor: pointer;

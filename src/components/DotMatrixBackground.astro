@@ -1,0 +1,196 @@
+---
+/**
+ * 矩阵点阵背景组件
+ * 效果：深色背景上分布规则点阵，鼠标附近点变大变亮，移走后平滑恢复
+ * 参考：updream.cn 首页背景交互
+ * 使用方式：在需要该效果的页面引入，建议同时禁用 Layout 中的全局漂浮粒子
+ */
+---
+
+<canvas id="dot-matrix-canvas" aria-hidden="true"></canvas>
+
+<script>
+  /**
+   * 矩阵点阵背景管理器
+   * - 根据屏幕尺寸生成规则网格点
+   * - 监听鼠标位置，对影响半径内的点施加放大/增亮
+   * - 鼠标移开后点平滑过渡回基础状态
+   */
+  class DotMatrixBackground {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private points: DotPoint[] = [];
+    private mouse = { x: -9999, y: -9999 };
+    private rafId = 0;
+
+    // 视觉参数
+    private gridGap = 36;          // 点阵网格间距（像素）
+    private baseRadius = 1.1;      // 基础点半径
+    private maxRadius = 4.5;       // 鼠标附近最大半径
+    private influenceRadius = 160; // 鼠标影响半径
+    private baseAlpha = 0.12;      // 基础透明度
+    private maxAlpha = 0.85;       // 最大透明度
+    private ease = 0.12;           // 过渡平滑系数（越小越柔和）
+    private dotColor = { r: 210, g: 185, b: 130 }; // 暖金色
+
+    constructor(canvas: HTMLCanvasElement) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext("2d")!;
+      this.resize();
+      this.bindEvents();
+      this.animate();
+    }
+
+    /** 根据屏幕尺寸生成规则网格点 */
+    private createPoints(): void {
+      this.points = [];
+      const width = this.canvas.width;
+      const height = this.canvas.height;
+
+      // 行列数量，两侧各多生成一列保证滚动/缩放时无缝
+      const cols = Math.ceil(width / this.gridGap) + 2;
+      const rows = Math.ceil(height / this.gridGap) + 2;
+      const offsetX = (width - (cols - 1) * this.gridGap) / 2;
+      const offsetY = (height - (rows - 1) * this.gridGap) / 2;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          this.points.push({
+            x: offsetX + col * this.gridGap,
+            y: offsetY + row * this.gridGap,
+            radius: this.baseRadius,
+            alpha: this.baseAlpha,
+            targetRadius: this.baseRadius,
+            targetAlpha: this.baseAlpha,
+          });
+        }
+      }
+    }
+
+    /** 设置 canvas 尺寸并重建点阵 */
+    private resize(): void {
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+      this.createPoints();
+    }
+
+    /** 绑定鼠标与窗口事件 */
+    private bindEvents(): void {
+      window.addEventListener("mousemove", (e) => {
+        this.mouse.x = e.clientX;
+        this.mouse.y = e.clientY;
+      });
+
+      window.addEventListener("mouseleave", () => {
+        this.mouse.x = -9999;
+        this.mouse.y = -9999;
+      });
+
+      window.addEventListener("resize", () => {
+        this.resize();
+      });
+    }
+
+    /** 计算鼠标对单点的影响程度（0~1） */
+    private getInfluence(point: DotPoint): number {
+      const dx = this.mouse.x - point.x;
+      const dy = this.mouse.y - point.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist >= this.influenceRadius) return 0;
+      // 使用二次缓出，让光斑中心更明显、边缘更柔和
+      const t = dist / this.influenceRadius;
+      return 1 - t * t;
+    }
+
+    /** 更新所有点的目标半径/透明度，并平滑过渡 */
+    private update(): void {
+      for (const p of this.points) {
+        const influence = this.getInfluence(p);
+        p.targetRadius = this.baseRadius + (this.maxRadius - this.baseRadius) * influence;
+        p.targetAlpha = this.baseAlpha + (this.maxAlpha - this.baseAlpha) * influence;
+
+        // 线性插值实现平滑过渡
+        p.radius += (p.targetRadius - p.radius) * this.ease;
+        p.alpha += (p.targetAlpha - p.alpha) * this.ease;
+
+        // 避免无限小数逼近
+        if (Math.abs(p.targetRadius - p.radius) < 0.01) p.radius = p.targetRadius;
+        if (Math.abs(p.targetAlpha - p.alpha) < 0.005) p.alpha = p.targetAlpha;
+      }
+    }
+
+    /** 绘制一帧 */
+    private draw(): void {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      const { r, g, b } = this.dotColor;
+
+      for (const p of this.points) {
+        // 跳过完全透明的点（性能优化）
+        if (p.alpha <= 0.001) continue;
+
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, Math.max(0, p.radius), 0, Math.PI * 2);
+        this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.alpha})`;
+        this.ctx.fill();
+
+        // 较大点时增加轻微光晕，增强"变亮"效果
+        if (p.radius > this.baseRadius * 2) {
+          const glow = this.ctx.createRadialGradient(
+            p.x, p.y, 0,
+            p.x, p.y, p.radius * 3
+          );
+          glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${p.alpha * 0.25})`);
+          glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2);
+          this.ctx.fillStyle = glow;
+          this.ctx.fill();
+        }
+      }
+    }
+
+    /** 动画循环 */
+    private animate = (): void => {
+      this.update();
+      this.draw();
+      this.rafId = requestAnimationFrame(this.animate);
+    };
+
+    /** 销毁动画，释放资源 */
+    public destroy(): void {
+      cancelAnimationFrame(this.rafId);
+    }
+  }
+
+  /** 单个点数据结构 */
+  interface DotPoint {
+    x: number;
+    y: number;
+    radius: number;
+    alpha: number;
+    targetRadius: number;
+    targetAlpha: number;
+  }
+
+  // module 脚本默认 defer 执行，此时 DOM 已就绪，直接初始化
+  const canvas = document.getElementById("dot-matrix-canvas") as HTMLCanvasElement | null;
+  if (canvas) {
+    const bg = new DotMatrixBackground(canvas);
+    // 页面卸载时清理动画
+    window.addEventListener("beforeunload", () => bg.destroy());
+  }
+</script>
+
+<style>
+  #dot-matrix-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    /* 首页各区块有实色背景会盖住 z-index:0 的 canvas；
+       这里设为 5 让点阵浮于内容之上预览效果，pointer-events:none 不影响交互 */
+    z-index: 5;
+    pointer-events: none;
+  }
+</style>

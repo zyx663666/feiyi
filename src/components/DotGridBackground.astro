@@ -1,0 +1,393 @@
+---
+/**
+ * 全局点阵背景组件（非遗主题色，跟随主题切换）
+ * 基于 updream.cn / react-bits DotGrid 交互效果
+ * 功能：
+ *   1. 规则点阵网格（密集）
+ *   2. 鼠标移动时感应半径内点变大变亮（baseColor → activeColor 颜色过渡）
+ *   3. 鼠标移入后约 1 秒达到最亮；鼠标移开后缓慢还原
+ *   4. 随机微波浪：基于正弦波 + 位置，部分点缓慢起伏
+ *   5. 点击触发径向扩散冲击波
+ *   6. 粒子随页面滚动同步移动（无缝平铺）
+ *   7. 激活点颜色跟随右上角主题面板中的 --hue CSS 变量实时变化
+ * 配色：墨青底 + HSL 主题色激活点
+ * 用法：在 Layout 中引入，作为所有页面的统一背景
+ */
+---
+
+<canvas id="dot-grid-canvas" aria-hidden="true"></canvas>
+
+<script>
+  /**
+   * DotGrid 点阵背景管理器（主题跟随版）
+   * 激活点颜色实时跟随 CSS 变量 --hue 变化
+   */
+  class DotGrid {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private dots: Dot[] = [];
+    private mouse = { x: -9999, y: -9999 };
+    private ripples: Ripple[] = [];
+    private rafId = 0;
+    private dpr = 1;
+    private scrollY = 0;
+    private time = 0;
+    private lastTime = 0;
+
+    // 视觉参数
+    private dotSize = 1.6;          // 基础点半径
+    private activeDotSize = 5;      // 激活点半径
+    private gap = 22;               // 点阵间距（密集）
+    private proximity = 150;        // 鼠标感应半径
+    private shockStrength = 6;      // 点击冲击强度
+    private mouseEase = 0.13;       // 激活缓动系数（约 0.5 秒达到最亮）
+    private returnEase = 0.022;     // 回归缓动系数（移走后缓慢还原）
+    private waveAmplitude = 0.18;   // 随机波浪幅度
+
+    // 颜色（基础色与背景固定；激活色根据 --hue 动态计算）
+    private bgColor = { r: 26, g: 26, b: 46 };        // #1A1A2E 墨青
+    private baseColor = { r: 74, g: 58, b: 34 };     // 默认暗赭缃（会被主题色覆盖前的兜底）
+    private activeColor = { r: 196, g: 163, b: 90 };  // 默认缃色（会被主题色覆盖前的兜底）
+    private hue = 25;                                 // 当前主题色相，从 CSS 变量 --hue 读取
+
+    constructor(canvas: HTMLCanvasElement) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext("2d")!;
+      this.dpr = window.devicePixelRatio || 1;
+      this.readHue();          // 初始化读取主题色相
+      this.observeHue();       // 监听主题色切换
+      this.resize();
+      this.bindEvents();
+      this.animate();
+    }
+
+    /** 从 CSS 变量 --hue 读取当前主题色相 */
+    private readHue(): void {
+      const root = document.documentElement;
+      const hueValue = getComputedStyle(root).getPropertyValue("--hue").trim();
+      const parsed = parseInt(hueValue, 10);
+      if (!isNaN(parsed)) {
+        this.hue = parsed;
+        this.updateThemeColors();
+      }
+    }
+
+    /** 监听 --hue CSS 变量变化（主题面板通过设置 root style 改变 --hue） */
+    private observeHue(): void {
+      const root = document.documentElement;
+      const observer = new MutationObserver(() => {
+        this.readHue();
+      });
+      observer.observe(root, { attributes: true, attributeFilter: ["style"] });
+    }
+
+    /** 根据当前色相更新基础色与激活色 */
+    private updateThemeColors(): void {
+      const h = this.hue;
+      // 基础点：低饱和、低亮度，与主题同色相但偏暗
+      this.baseColor = this.hslToRgb(h, 35, 22);
+      // 激活点：高饱和、中等偏亮，主题色
+      this.activeColor = this.hslToRgb(h, 72, 56);
+    }
+
+    /** HSL 转 RGB */
+    private hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
+      s /= 100;
+      l /= 100;
+      const k = (n: number) => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = (n: number) =>
+        l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      return {
+        r: Math.round(f(0) * 255),
+        g: Math.round(f(8) * 255),
+        b: Math.round(f(4) * 255),
+      };
+    }
+
+    /** 设置 canvas 尺寸（适配高分屏）并生成点阵 */
+    private resize(): void {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      this.canvas.width = w * this.dpr;
+      this.canvas.height = h * this.dpr;
+      this.canvas.style.width = w + "px";
+      this.canvas.style.height = h + "px";
+      this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      this.createDots();
+    }
+
+    /**
+     * 生成规则点阵网格
+     * 生成视口范围 + 边距的网格，配合滚动偏移实现无缝平铺
+     */
+    private createDots(): void {
+      this.dots = [];
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const cols = Math.ceil(w / this.gap) + 2;
+      const rows = Math.ceil(h / this.gap) + 2;
+      const offsetX = (w - (cols - 1) * this.gap) / 2;
+      const offsetY = (h - (rows - 1) * this.gap) / 2;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          this.dots.push({
+            baseX: offsetX + col * this.gap,
+            baseY: offsetY + row * this.gap,
+            size: this.dotSize,
+            targetSize: this.dotSize,
+            intensity: 0,
+            targetIntensity: 0,
+            wavePhase: Math.random() * Math.PI * 2,
+          });
+        }
+      }
+    }
+
+    /** 绑定事件 */
+    private bindEvents(): void {
+      // 鼠标移动
+      window.addEventListener("mousemove", (e) => {
+        this.mouse.x = e.clientX;
+        this.mouse.y = e.clientY;
+      });
+
+      // 鼠标离开视口
+      window.addEventListener("mouseleave", () => {
+        this.mouse.x = -9999;
+        this.mouse.y = -9999;
+      });
+
+      // 点击：产生扩散冲击波（视口坐标）
+      window.addEventListener("click", (e) => {
+        this.ripples.push({
+          viewX: e.clientX,
+          viewY: e.clientY,
+          radius: 0,
+          maxRadius: Math.max(window.innerWidth, window.innerHeight) * 0.7,
+          strength: this.shockStrength,
+          life: 1,
+        });
+      });
+
+      // 滚动：记录偏移（粒子随页面同步移动）
+      window.addEventListener("scroll", () => {
+        this.scrollY = window.scrollY;
+      }, { passive: true });
+
+      // 窗口尺寸变化
+      window.addEventListener("resize", () => {
+        this.dpr = window.devicePixelRatio || 1;
+        this.resize();
+      });
+    }
+
+    /** 计算鼠标对单点的影响强度（0~1），基于点的实际绘制位置（视口坐标） */
+    private getMouseInfluence(dot: Dot): number {
+      const drawY = dot.baseY - (this.scrollY % this.gap);
+      const dx = this.mouse.x - dot.baseX;
+      const dy = this.mouse.y - drawY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist >= this.proximity) return 0;
+      const t = dist / this.proximity;
+      return 1 - t * t;
+    }
+
+    /** 计算冲击波对单点的影响强度，基于点的实际绘制位置（视口坐标） */
+    private getRippleInfluence(dot: Dot): { intensity: number } {
+      let intensity = 0;
+      const drawY = dot.baseY - (this.scrollY % this.gap);
+
+      for (const ripple of this.ripples) {
+        const dx = dot.baseX - ripple.viewX;
+        const dy = drawY - ripple.viewY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const bandWidth = 80;
+        const diff = Math.abs(dist - ripple.radius);
+        if (diff < bandWidth) {
+          const bandStrength = 1 - diff / bandWidth;
+          intensity = Math.max(intensity, bandStrength * ripple.life);
+        }
+      }
+      return { intensity };
+    }
+
+    /** 计算随机波浪强度（基于正弦波 + 时间 + 位置） */
+    private getWaveIntensity(dot: Dot): number {
+      const wave =
+        Math.sin(this.time * 0.0008 + dot.baseX * 0.012 + dot.wavePhase) * 0.5 +
+        Math.sin(this.time * 0.0005 + dot.baseY * 0.01 + dot.wavePhase * 1.3) * 0.5;
+      const normalized = (wave + 1) / 2;
+      return normalized * this.waveAmplitude;
+    }
+
+    /** 更新所有点状态 */
+    private update(deltaTime: number): void {
+      this.time += deltaTime;
+
+      // 更新冲击波
+      this.ripples = this.ripples.filter((r) => {
+        r.radius += 8;
+        r.life -= 0.012;
+        return r.life > 0 && r.radius < r.maxRadius;
+      });
+
+      for (const dot of this.dots) {
+        const mouseInfluence = this.getMouseInfluence(dot);
+        const ripple = this.getRippleInfluence(dot);
+        const wave = this.getWaveIntensity(dot);
+
+        dot.targetSize = this.dotSize
+          + (this.activeDotSize - this.dotSize) * mouseInfluence
+          + ripple.intensity * 3;
+
+        dot.targetIntensity = Math.min(1, mouseInfluence + ripple.intensity * 0.6 + wave);
+
+        // 分离激活与还原速度：
+        // 当目标大于当前（激活）时用 mouseEase，约 1 秒达到最亮；
+        // 当目标小于当前（还原）时用 returnEase，保持缓慢还原。
+        const sizeEase = dot.targetSize > dot.size ? this.mouseEase : this.returnEase;
+        const intensityEase = dot.targetIntensity > dot.intensity ? this.mouseEase : this.returnEase;
+
+        dot.size += (dot.targetSize - dot.size) * sizeEase;
+        dot.intensity += (dot.targetIntensity - dot.intensity) * intensityEase;
+      }
+    }
+
+    /** 颜色线性插值 */
+    private lerpColor(t: number): string {
+      const r = Math.round(this.baseColor.r + (this.activeColor.r - this.baseColor.r) * t);
+      const g = Math.round(this.baseColor.g + (this.activeColor.g - this.baseColor.g) * t);
+      const b = Math.round(this.baseColor.b + (this.activeColor.b - this.baseColor.b) * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    /** rgb 字符串转 rgba */
+    private rgbToRgba(rgb: string, alpha: number): string {
+      const match = rgb.match(/\d+/g);
+      if (!match) return rgb;
+      const [r, g, b] = match;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    /** 绘制一帧 */
+    private draw(): void {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // 清屏（背景色填充）
+      this.ctx.fillStyle = `rgb(${this.bgColor.r}, ${this.bgColor.g}, ${this.bgColor.b})`;
+      this.ctx.fillRect(0, 0, w, h);
+
+      // 滚动偏移：粒子随页面上移，用 modulo 实现无缝平铺
+      const scrollOffsetY = -(this.scrollY % this.gap);
+
+      // 绘制所有点
+      for (const dot of this.dots) {
+        if (dot.size <= 0.1) continue;
+
+        const drawY = dot.baseY + scrollOffsetY;
+
+        // 激活点添加光晕
+        if (dot.intensity > 0.1) {
+          const glowRadius = dot.size * 4;
+          const glow = this.ctx.createRadialGradient(
+            dot.baseX, drawY, 0,
+            dot.baseX, drawY, glowRadius
+          );
+          const glowColor = this.lerpColor(dot.intensity);
+          glow.addColorStop(0, this.rgbToRgba(glowColor, dot.intensity * 0.4));
+          glow.addColorStop(1, this.rgbToRgba(glowColor, 0));
+          this.ctx.beginPath();
+          this.ctx.arc(dot.baseX, drawY, glowRadius, 0, Math.PI * 2);
+          this.ctx.fillStyle = glow;
+          this.ctx.fill();
+        }
+
+        // 点核心
+        this.ctx.beginPath();
+        this.ctx.arc(dot.baseX, drawY, Math.max(0.5, dot.size), 0, Math.PI * 2);
+        this.ctx.fillStyle = this.lerpColor(dot.intensity);
+        this.ctx.fill();
+      }
+
+      // 绘制冲击波环（视口坐标）
+      for (const ripple of this.ripples) {
+        this.ctx.beginPath();
+        this.ctx.arc(ripple.viewX, ripple.viewY, ripple.radius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = this.rgbToRgba(
+          this.lerpColor(ripple.life),
+          ripple.life * 0.15
+        );
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+      }
+    }
+
+    /** 动画循环 */
+    private animate = (timestamp: number = 0): void => {
+      const deltaTime = timestamp - this.lastTime;
+      this.lastTime = timestamp;
+      this.update(deltaTime);
+      this.draw();
+      this.rafId = requestAnimationFrame(this.animate);
+    };
+
+    /** 销毁 */
+    public destroy(): void {
+      cancelAnimationFrame(this.rafId);
+    }
+  }
+
+  /** 点数据结构 */
+  interface Dot {
+    baseX: number;
+    baseY: number;
+    size: number;
+    targetSize: number;
+    intensity: number;
+    targetIntensity: number;
+    wavePhase: number;
+  }
+
+  /** 冲击波数据结构（视口坐标） */
+  interface Ripple {
+    viewX: number;
+    viewY: number;
+    radius: number;
+    maxRadius: number;
+    strength: number;
+    life: number;
+  }
+
+  // module 脚本默认 defer，DOM 已就绪，直接初始化
+  const canvas = document.getElementById("dot-grid-canvas") as HTMLCanvasElement | null;
+  if (canvas) {
+    const grid = new DotGrid(canvas);
+    window.addEventListener("beforeunload", () => grid.destroy());
+  }
+</script>
+
+<style>
+  /* 点阵背景 canvas：fixed 铺满视口，置于最底层 */
+  #dot-grid-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  :global(body) {
+    position: relative;
+  }
+
+  /* 页面内容统一压在 canvas 之上；排除固定悬浮的 UI 组件，避免破坏其 fixed 定位 */
+  :global(body > *:not(#dot-grid-canvas):not(nav):not(.music-player-wrap):not(.theme-toggle):not(.theme-panel):not(.theme-overlay)) {
+    position: relative;
+    z-index: 1;
+  }
+</style>

@@ -5,6 +5,7 @@
  */
 import ThemeToggle from "./ThemeToggle.astro";
 import MusicPlayer from "./MusicPlayer.astro";
+import DotGridBackground from "./DotGridBackground.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -52,6 +53,9 @@ const pageTitle = title ? `${title} | ${siteName}` : siteName;
   </script>
 </head>
 <body>
+  <!-- 全局点阵背景（非遗主题色：墨青底 + 缃色暖金激活点） -->
+  <DotGridBackground />
+
   <slot />
 
   <!-- 主题色切换器（右上角） -->

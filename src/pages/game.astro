@@ -27,6 +27,7 @@ import Footer from "../components/Footer.astro";
           <a href={`${import.meta.env.BASE_URL}game`} class="tab-btn active">拉坯模拟器</a>
           <a href={`${import.meta.env.BASE_URL}game/embroidery`} class="tab-btn">刺绣挑战</a>
           <a href={`${import.meta.env.BASE_URL}game/glaze`} class="tab-btn">釉色调配</a>
+          <a href={`${import.meta.env.BASE_URL}game/quiz`} class="tab-btn">益智答题</a>
         </nav>
         <button class="header-btn" id="reset-btn" title="重置">↻</button>
       </div>
@@ -182,22 +183,22 @@ import Footer from "../components/Footer.astro";
 </Layout>
 
 <style>
-  /* ===== 主题变量 ===== */
+  /* ===== 主题变量（深色主题，透出全局点阵背景） ===== */
   :root {
-    --clay: #8B4513;
-    --clay-light: #C4A35A;
-    --kiln: #c4452a;
-    --paper: #f4f1ea;
-    --ink: #2c2418;
-    --paper-dark: #e8e0d0;
-    --gray: #7a7268;
+    --clay: #C4A35A;
+    --clay-light: #D4B872;
+    --kiln: #E8B86A;
+    --paper: rgba(26, 26, 46, 0.78);
+    --ink: #F5F0E8;
+    --paper-dark: rgba(196, 163, 90, 0.25);
+    --gray: rgba(245, 240, 232, 0.6);
   }
 
   /* ===== 主容器 ===== */
   .game-main {
     min-height: 100vh;
     padding-top: var(--nav-height);
-    background: linear-gradient(180deg, #f4f1ea 0%, #e8e0d0 100%);
+    background: transparent;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -228,7 +229,7 @@ import Footer from "../components/Footer.astro";
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: white;
+    background: var(--paper);
     color: var(--clay);
     font-size: 1.2rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -262,7 +263,7 @@ import Footer from "../components/Footer.astro";
   .game-tabs {
     display: flex;
     gap: 4px;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0,0,0,0.35);
     border-radius: 8px;
     padding: 3px;
   }
@@ -290,7 +291,7 @@ import Footer from "../components/Footer.astro";
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: white;
+    background: var(--paper);
     color: var(--clay);
     font-size: 1rem;
     font-weight: 700;
@@ -316,12 +317,22 @@ import Footer from "../components/Footer.astro";
   }
 
   .panel {
-    background: white;
+    /* 面板使用不透明浅棕黄底色，并在面板内恢复浅色主题变量以保证文字可读 */
+    background: #EFE0BE;
+    border: 1px solid rgba(139, 69, 19, 0.2);
     border-radius: 12px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
     padding: 20px;
     display: flex;
     flex-direction: column;
+    --ink: #2c2418;
+    --gray: #7a7268;
+    --paper: #f7f0df;
+    --paper-dark: #e0d4b8;
+    --clay: #8B4513;
+    --clay-light: #C4A35A;
+    --kiln: #c4452a;
+    color: #2c2418;
   }
 
   .panel-title {
@@ -348,7 +359,7 @@ import Footer from "../components/Footer.astro";
   }
 
   #reference-canvas {
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
   }
 
@@ -383,7 +394,7 @@ import Footer from "../components/Footer.astro";
     font-size: 0.8rem;
     color: var(--ink);
     padding: 4px 8px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 4px;
   }
 
@@ -408,7 +419,7 @@ import Footer from "../components/Footer.astro";
   }
 
   #game-canvas {
-    background: linear-gradient(180deg, #faf8f3 0%, #f0ebe0 100%);
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d1a 100%);
     border-radius: 8px;
     cursor: grab;
     touch-action: none;
@@ -502,7 +513,7 @@ import Footer from "../components/Footer.astro";
     font-weight: 700;
     cursor: pointer;
     border: 2px solid var(--clay);
-    background: white;
+    background: var(--paper);
     color: var(--clay);
     transition: all 0.2s;
     white-space: nowrap;
@@ -607,7 +618,7 @@ import Footer from "../components/Footer.astro";
     align-items: flex-start;
     gap: 8px;
     padding: 10px 12px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
     font-size: 0.75rem;
     color: var(--gray);
@@ -622,7 +633,7 @@ import Footer from "../components/Footer.astro";
   .help-inline {
     margin-top: 12px;
     padding: 12px;
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
     border-radius: 8px;
     border-left: 3px solid var(--clay);
   }
@@ -689,7 +700,7 @@ import Footer from "../components/Footer.astro";
     align-items: center;
     gap: 4px;
     padding: 10px 16px;
-    background: white;
+    background: var(--paper);
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     cursor: pointer;
@@ -704,7 +715,7 @@ import Footer from "../components/Footer.astro";
 
   .shape-card.active {
     border-color: var(--clay);
-    background: #faf8f3;
+    background: rgba(196, 163, 90, 0.12);
   }
 
   .shape-thumb {
@@ -753,7 +764,7 @@ import Footer from "../components/Footer.astro";
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0,0,0,0.35);
     color: var(--ink);
     font-size: 1.4rem;
     cursor: pointer;

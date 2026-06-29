@@ -1,0 +1,1108 @@
+---
+/**
+ * 益智答题 - 非遗知识问答游戏
+ * 玩法：单选题 A/B/C/D，答完即时反馈，最后显示总分
+ * 题目涵盖陶瓷、刺绣、木雕等非遗知识
+ */
+import Layout from "../../components/Layout.astro";
+import Navigation from "../../components/Navigation.astro";
+import Footer from "../../components/Footer.astro";
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="益智答题 - 非遗传承">
+  <Navigation />
+
+  <main class="game-main">
+    <!-- 顶部标题栏 -->
+    <header class="game-header">
+      <div class="header-left">
+        <a href={`${base}`} class="back-btn" aria-label="返回首页">←</a>
+        <div class="title-area">
+          <h1 class="game-title">益智答题</h1>
+          <p class="game-subtitle">非遗知识 · 智慧闯关</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <nav class="game-tabs">
+          <a href={`${base}game`} class="tab-btn">拉坯模拟器</a>
+          <a href={`${base}game/embroidery`} class="tab-btn">刺绣挑战</a>
+          <a href={`${base}game/glaze`} class="tab-btn">釉色调配</a>
+          <a href={`${base}game/quiz`} class="tab-btn active">益智答题</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 答题主体 -->
+    <div class="quiz-body">
+      <!-- 左栏：进度与提示 -->
+      <aside class="panel quiz-progress-panel">
+        <h2 class="panel-title">答题进度</h2>
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring" width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="8" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--clay)" stroke-width="8"
+              stroke-linecap="round" id="progress-ring-circle"
+              stroke-dasharray="327" stroke-dashoffset="327"
+              transform="rotate(-90 60 60)" />
+          </svg>
+          <div class="progress-text">
+            <span class="progress-current" id="progress-current">1</span>
+            <span class="progress-total">/10</span>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+          </div>
+          <p class="progress-hint">答对 <span id="correct-count">0</span> 题</p>
+        </div>
+        <div class="quiz-tip">
+          <span class="tip-icon">💡</span>
+          <span class="tip-text">选择你认为正确的选项，提交后查看解析</span>
+        </div>
+      </aside>
+
+      <!-- 中栏：题目与选项 -->
+      <section class="panel quiz-stage">
+        <div class="quiz-question-area" id="quiz-question-area">
+          <div class="question-header">
+            <span class="question-number" id="question-number">第 1 题</span>
+            <span class="question-tag" id="question-tag">陶瓷</span>
+          </div>
+          <h2 class="question-text" id="question-text">题目加载中…</h2>
+          <div class="options-list" id="options-list">
+            <!-- 选项由 JS 动态生成 -->
+          </div>
+          <div class="feedback-area" id="feedback-area" hidden>
+            <div class="feedback-icon" id="feedback-icon">✓</div>
+            <div class="feedback-content">
+              <p class="feedback-title" id="feedback-title">回答正确</p>
+              <p class="feedback-text" id="feedback-text">解析内容</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="quiz-controls">
+          <button class="action-btn" id="submit-btn" disabled>提交答案</button>
+          <button class="action-btn" id="retry-btn" hidden>重新选择</button>
+          <button class="action-btn primary" id="next-btn" hidden>下一题</button>
+        </div>
+      </section>
+
+      <!-- 右栏：规则与帮助 -->
+      <aside class="panel quiz-help-panel">
+        <h2 class="panel-title">游戏规则</h2>
+        <ol class="help-list">
+          <li>每题只有一个正确答案</li>
+          <li>点击选项 A/B/C/D 进行选择</li>
+          <li>提交后可查看答案解析</li>
+          <li>共 10 题，满分 100 分</li>
+        </ol>
+        <div class="help-extra">
+          <h3 class="help-subtitle">评分等级</h3>
+          <div class="grade-list">
+            <div class="grade-item"><span class="grade-tag excellent">100</span><span>非遗通神</span></div>
+            <div class="grade-item"><span class="grade-tag good">80-90</span><span>文化传承者</span></div>
+            <div class="grade-item"><span class="grade-tag pass">60-70</span><span>初入门槛</span></div>
+            <div class="grade-item"><span class="grade-tag fail">&lt;60</span><span>继续学习</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="modal-overlay" id="result-modal">
+      <div class="modal-content result-modal">
+        <h2 class="modal-title">挑战完成</h2>
+        <div class="result-score-ring">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(139,69,19,0.12)" stroke-width="10" />
+            <circle cx="80" cy="80" r="68" fill="none" stroke="var(--clay)" stroke-width="10"
+              stroke-linecap="round" id="result-ring"
+              stroke-dasharray="427" stroke-dashoffset="427"
+              transform="rotate(-90 80 80)" />
+          </svg>
+          <div class="result-score-text">
+            <span class="result-num" id="result-num">0</span>
+            <span class="result-grade" id="result-grade"></span>
+          </div>
+        </div>
+        <p class="result-comment" id="result-comment"></p>
+        <div class="result-actions">
+          <button class="action-btn" id="result-retry">再来一次</button>
+          <a href={`${base}game`} class="action-btn primary">返回游戏</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* ===== 主题变量（深色主题，透出全局点阵背景） ===== */
+  :root {
+    --clay: #C4A35A;
+    --clay-light: #D4B872;
+    --kiln: #E8B86A;
+    --paper: rgba(26, 26, 46, 0.78);
+    --ink: #F5F0E8;
+    --paper-dark: rgba(196, 163, 90, 0.25);
+    --gray: rgba(245, 240, 232, 0.6);
+    --correct: #6BBF6A;
+    --wrong: #E55A5A;
+  }
+
+  /* ===== 主容器 ===== */
+  .game-main {
+    min-height: 100vh;
+    padding-top: var(--nav-height);
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+  }
+
+  /* ===== 顶部标题栏 ===== */
+  .game-header {
+    width: 100%;
+    max-width: 1400px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(26, 26, 46, 0.85);
+    color: var(--clay);
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .back-btn:hover {
+    background: var(--clay);
+    color: white;
+  }
+
+  .game-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.8rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .game-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gray);
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .tab-btn:hover {
+    color: var(--clay);
+  }
+
+  .tab-btn.active {
+    background: var(--clay);
+    color: white;
+  }
+
+  /* ===== 答题主体 ===== */
+  .quiz-body {
+    display: flex;
+    gap: 16px;
+    padding: 0 16px;
+    max-width: 1400px;
+    width: 100%;
+    align-items: stretch;
+    flex: 1;
+  }
+
+  .panel {
+    /* 面板使用不透明浅棕黄底色，并在面板内恢复浅色主题变量以保证文字可读 */
+    background: #EFE0BE;
+    border: 1px solid rgba(139, 69, 19, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    /* 覆盖深色主题变量，让面板内部回到浅棕黄配色 */
+    --ink: #2c2418;
+    --gray: #7a7268;
+    --paper: #f7f0df;
+    --paper-dark: #e0d4b8;
+    --clay: #8B4513;
+    --clay-light: #C4A35A;
+    --correct: #5B8C5A;
+    --wrong: #B22222;
+    color: #2c2418;
+  }
+
+  .panel-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--paper-dark);
+  }
+
+  /* ===== 左栏：进度 ===== */
+  .quiz-progress-panel {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .progress-ring-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .progress-ring circle:last-child {
+    transition: stroke-dashoffset 0.5s ease;
+  }
+
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .progress-current {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--clay);
+  }
+
+  .progress-total {
+    font-size: 0.85rem;
+    color: var(--gray);
+  }
+
+  .progress-bar-wrap {
+    margin-bottom: 16px;
+  }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: var(--paper-dark);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--clay), var(--clay-light));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-hint {
+    font-size: 0.85rem;
+    color: var(--gray);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .quiz-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    background: var(--paper);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .tip-icon {
+    flex-shrink: 0;
+  }
+
+  /* ===== 中栏：题目 ===== */
+  .quiz-stage {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .quiz-question-area {
+    flex: 1;
+  }
+
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .question-number {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--clay);
+  }
+
+  .question-tag {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    background: rgba(139, 69, 19, 0.1);
+    color: var(--clay);
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .question-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.55rem;
+    line-height: 1.7;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  .options-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid var(--paper-dark);
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 1.1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--clay);
+    background: rgba(139, 69, 19, 0.05);
+  }
+
+  .option-btn.selected {
+    border-color: var(--clay);
+    background: rgba(139, 69, 19, 0.22);
+    box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.3);
+  }
+
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: rgba(91, 140, 90, 0.18);
+  }
+
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(178, 34, 34, 0.15);
+    opacity: 0.6;
+  }
+
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  .option-text {
+    flex: 1;
+  }
+
+  .option-label {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--paper-dark);
+    color: var(--clay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-btn.selected .option-label,
+  .option-btn.correct .option-label,
+  .option-btn.wrong .option-label {
+    background: var(--clay);
+    color: white;
+  }
+
+  .option-btn.correct .option-label {
+    background: var(--correct);
+  }
+
+  .option-btn.wrong .option-label {
+    background: var(--wrong);
+  }
+
+  /* 修复 hidden 属性被 display 规则覆盖的问题 */
+  [hidden] {
+    display: none !important;
+  }
+
+  .feedback-area {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+  }
+
+  /* 修复 hidden 属性被 display:flex 覆盖的问题 */
+  .feedback-area[hidden] {
+    display: none !important;
+  }
+
+  .feedback-area.correct {
+    background: rgba(91, 140, 90, 0.1);
+    border: 1px solid rgba(91, 140, 90, 0.3);
+  }
+
+  .feedback-area.wrong {
+    background: rgba(178, 34, 34, 0.08);
+    border: 1px solid rgba(178, 34, 34, 0.25);
+  }
+
+  .feedback-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .feedback-area.correct .feedback-icon {
+    background: var(--correct);
+    color: white;
+  }
+
+  .feedback-area.wrong .feedback-icon {
+    background: var(--wrong);
+    color: white;
+  }
+
+  .feedback-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .feedback-area.correct .feedback-title {
+    color: var(--correct);
+  }
+
+  .feedback-area.wrong .feedback-title {
+    color: var(--wrong);
+  }
+
+  .feedback-text {
+    font-size: 0.9rem;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+
+  .quiz-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .action-btn {
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--clay);
+    background: #f7f0df;
+    color: var(--clay);
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action-btn:hover:not(:disabled) {
+    background: var(--paper-dark);
+  }
+
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .action-btn.primary {
+    background: var(--clay);
+    color: white;
+  }
+
+  .action-btn.primary:hover {
+    background: #6b3410;
+  }
+
+  /* ===== 右栏：帮助 ===== */
+  .quiz-help-panel {
+    width: 260px;
+    flex-shrink: 0;
+  }
+
+  .help-list {
+    list-style: none;
+    counter-reset: help-counter;
+    padding: 0;
+    margin: 0 0 20px 0;
+  }
+
+  .help-list li {
+    counter-increment: help-counter;
+    font-size: 0.85rem;
+    color: var(--gray);
+    line-height: 1.7;
+    padding-left: 24px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .help-list li::before {
+    content: counter(help-counter);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--clay);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .help-subtitle {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .grade-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .grade-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--gray);
+  }
+
+  .grade-tag {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .grade-tag.excellent { background: var(--correct); }
+  .grade-tag.good { background: #D4A017; }
+  .grade-tag.pass { background: var(--clay); }
+  .grade-tag.fail { background: var(--wrong); }
+
+  /* ===== 弹窗 ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(196, 163, 90, 0.3);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .modal-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.6rem;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .result-modal {
+    text-align: center;
+  }
+
+  .result-score-ring {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  #result-ring {
+    transition: stroke-dashoffset 1s ease;
+  }
+
+  .result-score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .result-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--clay);
+    display: block;
+    line-height: 1;
+  }
+
+  .result-grade {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.2rem;
+    color: var(--kiln);
+  }
+
+  .result-comment {
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 960px) {
+    .quiz-body {
+      flex-direction: column;
+    }
+
+    .quiz-progress-panel,
+    .quiz-help-panel {
+      width: 100%;
+    }
+
+    .progress-ring-wrap {
+      margin-bottom: 12px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .game-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .game-tabs {
+      flex-wrap: wrap;
+    }
+
+    .question-text {
+      font-size: 1.1rem;
+    }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  'use strict';
+
+  /**
+   * 非遗知识题库
+   * 每题包含：题目、选项、正确答案索引、解析、所属分类标签
+   */
+  const QUESTIONS = [
+    {
+      text: '景德镇手工制瓷技艺在宋代以哪种瓷器闻名天下？',
+      options: ['白瓷', '青瓷', '青白瓷', '彩陶'],
+      answer: 2,
+      tag: '陶瓷',
+      explanation: '景德镇在宋代以"青白瓷"（影青瓷）著称，釉色介于青白之间，晶莹剔透。'
+    },
+    {
+      text: '以下哪一项不属于中国四大名绣？',
+      options: ['苏绣', '蜀绣', '湘绣', '顾绣'],
+      answer: 3,
+      tag: '刺绣',
+      explanation: '中国四大名绣为苏绣、湘绣、粤绣、蜀绣。顾绣虽有名，但不属于四大名绣。'
+    },
+    {
+      text: '东阳木雕主要产自我国哪个省份？',
+      options: ['浙江', '福建', '广东', '江苏'],
+      answer: 0,
+      tag: '木雕',
+      explanation: '东阳木雕因产于浙江东阳而得名，是中国四大木雕之首，以浮雕见长。'
+    },
+    {
+      text: '传统青花瓷的"青花"蓝色是用什么颜料绘制而成的？',
+      options: ['铜料', '钴料', '铁料', '锰料'],
+      answer: 1,
+      tag: '陶瓷',
+      explanation: '青花使用含钴的矿物颜料在瓷坯上绘画，再罩透明釉高温烧成，呈现稳定蓝色。'
+    },
+    {
+      text: '下列哪项全部属于中国国家级非物质文化遗产代表性项目？',
+      options: ['剪纸、木雕、京剧', '广场舞、韩剧、动漫', '电子游戏、流行音乐、街舞', '咖啡拉花、西餐、瑜伽'],
+      answer: 0,
+      tag: '综合',
+      explanation: '剪纸、木雕、京剧均是我国国家级非物质文化遗产代表性项目。'
+    },
+    {
+      text: '苏绣最突出的艺术特点是？',
+      options: ['构图粗犷豪放', '针法细腻、形象逼真', '大量使用金线', '色彩浓艳对比强烈'],
+      answer: 1,
+      tag: '刺绣',
+      explanation: '苏绣以"平、齐、细、密、匀、顺、和、光"为特色，尤以双面绣和精细仿真闻名。'
+    },
+    {
+      text: '潮州木雕最常见的传统题材是？',
+      options: ['人物故事与戏曲场面', '抽象几何纹样', '西洋风景', '现代建筑'],
+      answer: 0,
+      tag: '木雕',
+      explanation: '潮州木雕多用于建筑装饰和神器装饰，常见人物故事、戏曲场面、花鸟瑞兽等题材。'
+    },
+    {
+      text: '"唐三彩"中的"三彩"一般指？',
+      options: ['三种器型', '三种主要釉色', '三种制作工艺', '三种泥土配方'],
+      answer: 1,
+      tag: '陶瓷',
+      explanation: '唐三彩是唐代低温铅釉陶，以黄、绿、白（或蓝、赭）等多种釉色为主，"三"为虚指多彩。'
+    },
+    {
+      text: '以"双面绣"技艺闻名于世的是哪种刺绣？',
+      options: ['湘绣', '苏绣', '粤绣', '蜀绣'],
+      answer: 1,
+      tag: '刺绣',
+      explanation: '苏绣双面绣在同一块底料上绣出正反两面完全相同的图案，针脚隐藏，技艺精湛。'
+    },
+    {
+      text: '非物质文化遗产在国际上的英文简称是？',
+      options: ['ICH', 'UNESCO', 'IPA', 'WIPO'],
+      answer: 0,
+      tag: '综合',
+      explanation: 'ICH 是 Intangible Cultural Heritage（非物质文化遗产）的英文缩写。'
+    }
+  ];
+
+  // ===== 状态 =====
+  let currentIndex = 0;
+  let score = 0;
+  let selectedOption = -1;
+  let firstTry = true;   // 当前题是否为首次尝试（用于计分）
+  let answered = false;  // 当前题是否已答对（用于阻止重复提交）
+
+  // ===== DOM 元素 =====
+  const questionNumberEl = document.getElementById('question-number');
+  const questionTagEl = document.getElementById('question-tag');
+  const questionTextEl = document.getElementById('question-text');
+  const optionsListEl = document.getElementById('options-list');
+  const submitBtn = document.getElementById('submit-btn');
+  const retryBtn = document.getElementById('retry-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const feedbackArea = document.getElementById('feedback-area');
+  const feedbackIcon = document.getElementById('feedback-icon');
+  const feedbackTitle = document.getElementById('feedback-title');
+  const feedbackText = document.getElementById('feedback-text');
+  const progressCurrentEl = document.getElementById('progress-current');
+  const correctCountEl = document.getElementById('correct-count');
+  const progressBarFill = document.getElementById('progress-bar-fill');
+  const progressRingCircle = document.getElementById('progress-ring-circle');
+  const resultModal = document.getElementById('result-modal');
+  const resultNumEl = document.getElementById('result-num');
+  const resultGradeEl = document.getElementById('result-grade');
+  const resultCommentEl = document.getElementById('result-comment');
+
+  // ===== 渲染当前题目 =====
+  function renderQuestion() {
+    const q = QUESTIONS[currentIndex];
+    selectedOption = -1;
+    firstTry = true;
+    answered = false;
+
+    questionNumberEl.textContent = '第 ' + (currentIndex + 1) + ' 题';
+    questionTagEl.textContent = q.tag;
+    questionTextEl.textContent = q.text;
+
+    // 生成选项按钮
+    optionsListEl.innerHTML = '';
+    q.options.forEach(function(opt, idx) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'option-btn';
+      btn.setAttribute('data-index', idx);
+      btn.innerHTML = '<span class="option-label">' + String.fromCharCode(65 + idx) + '</span><span class="option-text">' + opt + '</span>';
+      btn.addEventListener('click', function() { selectOption(idx); });
+      optionsListEl.appendChild(btn);
+    });
+
+    // 重置反馈与按钮状态
+    feedbackArea.hidden = true;
+    feedbackArea.className = 'feedback-area';
+    feedbackIcon.textContent = '';
+    feedbackTitle.textContent = '';
+    feedbackText.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.hidden = false;
+    retryBtn.hidden = true;
+    nextBtn.hidden = true;
+
+    updateProgress();
+  }
+
+  // ===== 选择选项 =====
+  function selectOption(index) {
+    if (answered) return;
+    selectedOption = index;
+    const buttons = optionsListEl.querySelectorAll('.option-btn');
+    buttons.forEach(function(btn, idx) {
+      // 已被标记为 wrong 的选项保持禁用，不恢复选中态
+      if (btn.classList.contains('wrong')) return;
+      btn.classList.toggle('selected', idx === index);
+    });
+    submitBtn.disabled = false;
+  }
+
+  // ===== 提交答案 =====
+  function submitAnswer() {
+    if (answered || selectedOption === -1) return;
+
+    const q = QUESTIONS[currentIndex];
+    const isCorrect = selectedOption === q.answer;
+
+    if (isCorrect) {
+      // 答对：首次尝试得 10 分，重选后答对得 5 分
+      score += firstTry ? 10 : 5;
+      answered = true;
+
+      // 标记正确选项
+      const buttons = optionsListEl.querySelectorAll('.option-btn');
+      buttons.forEach(function(btn, idx) {
+        btn.disabled = true;
+        if (idx === q.answer) {
+          btn.classList.add('correct');
+        }
+      });
+
+      // 显示正确反馈
+      feedbackArea.hidden = false;
+      feedbackArea.className = 'feedback-area correct';
+      feedbackIcon.textContent = '✓';
+      feedbackTitle.textContent = firstTry ? '回答正确' : '回答正确（重选后）';
+      feedbackText.textContent = q.explanation;
+
+      submitBtn.hidden = true;
+      retryBtn.hidden = true;
+      nextBtn.hidden = false;
+    } else {
+      // 答错：标记所选选项为错误并禁用，允许重新选择其他选项
+      firstTry = false;
+      const buttons = optionsListEl.querySelectorAll('.option-btn');
+      buttons.forEach(function(btn, idx) {
+        if (idx === selectedOption) {
+          btn.classList.add('wrong');
+          btn.classList.remove('selected');
+          btn.disabled = true;
+        }
+      });
+
+      // 显示错误反馈（不揭示正确答案）
+      feedbackArea.hidden = false;
+      feedbackArea.className = 'feedback-area wrong';
+      feedbackIcon.textContent = '✕';
+      feedbackTitle.textContent = '回答错误，请重新选择';
+      feedbackText.textContent = '再仔细想想，排除错误选项后继续作答。';
+
+      selectedOption = -1;
+      submitBtn.hidden = true;
+      retryBtn.hidden = false;
+      nextBtn.hidden = true;
+    }
+
+    updateProgress();
+  }
+
+  // ===== 重新选择（清除当前选择状态，恢复作答） =====
+  function retrySelection() {
+    feedbackArea.hidden = true;
+    retryBtn.hidden = true;
+    submitBtn.hidden = false;
+    submitBtn.disabled = true;  // 未选择选项前禁用提交
+    // wrong 选项保持禁用，其余选项可重新点击
+  }
+
+  // ===== 下一题 =====
+  function nextQuestion() {
+    if (currentIndex < QUESTIONS.length - 1) {
+      currentIndex++;
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  // ===== 更新进度显示 =====
+  function updateProgress() {
+    const progress = ((currentIndex + (answered ? 1 : 0)) / QUESTIONS.length) * 100;
+    progressCurrentEl.textContent = currentIndex + 1;
+    correctCountEl.textContent = Math.round(score / 10);
+    progressBarFill.style.width = progress + '%';
+
+    const circumference = 2 * Math.PI * 52;
+    const offset = circumference * (1 - progress / 100);
+    progressRingCircle.style.strokeDashoffset = offset;
+  }
+
+  // ===== 显示最终结果 =====
+  function showResult() {
+    resultModal.classList.add('show');
+
+    // 圆环动画
+    const circumference = 2 * Math.PI * 68;
+    const offset = circumference * (1 - score / 100);
+    setTimeout(function() {
+      document.getElementById('result-ring').style.strokeDashoffset = offset;
+    }, 100);
+
+    resultNumEl.textContent = score;
+
+    // 评级与评语
+    let grade, comment;
+    if (score === 100) {
+      grade = '非遗通神';
+      comment = '十全十美！你对非遗知识了如指掌，堪称非遗小达人。';
+    } else if (score >= 80) {
+      grade = '文化传承者';
+      comment = '成绩优异！你对非遗已有较深了解，继续探索更多精彩。';
+    } else if (score >= 60) {
+      grade = '初入门槛';
+      comment = '基础不错！答错了几题也没关系，再看看解析巩固一下。';
+    } else if (score >= 40) {
+      grade = '求知学徒';
+      comment = '还有提升空间，建议多逛逛项目页了解非遗知识。';
+    } else {
+      grade = '继续学习';
+      comment = '别灰心，非遗博大精深，从基础项目页开始了解吧！';
+    }
+    resultGradeEl.textContent = grade;
+    resultCommentEl.textContent = comment;
+  }
+
+  // ===== 重新开始 =====
+  function restartQuiz() {
+    currentIndex = 0;
+    score = 0;
+    resultModal.classList.remove('show');
+    document.getElementById('result-ring').style.strokeDashoffset = 427;
+    renderQuestion();
+  }
+
+  // ===== 事件绑定 =====
+  submitBtn.addEventListener('click', submitAnswer);
+  retryBtn.addEventListener('click', retrySelection);
+  nextBtn.addEventListener('click', nextQuestion);
+  document.getElementById('result-retry').addEventListener('click', restartQuiz);
+
+  // 点击遮罩关闭弹窗
+  resultModal.addEventListener('click', function(e) {
+    if (e.target === resultModal) resultModal.classList.remove('show');
+  });
+
+  // ===== 初始化 =====
+  renderQuestion();
+})();
+</script>
+</Layout>

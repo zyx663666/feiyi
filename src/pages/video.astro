@@ -1,54 +1,1864 @@
 ---
 /**
- * 视频动画页（占位）
- * 后续实现非遗技艺科普视频播放
+ * 视频动画页（整合页）
+ * 使用本地视频素材，三大手艺专题展示
+ * 功能：
+ *   1. 顶部轮播图：自动循环播放5个视频的切片片段（每个播放约15秒）
+ *   2. 三大专题区：自定义HTML5播放器 + B站风格视频选集列表
+ *   3. 背景图区域水波纹涟漪交互
+ * 视频素材存放于 public/videos/ 目录
  */
 import Layout from "../components/Layout.astro";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
+
+const base = import.meta.env.BASE_URL;
+
+/**
+ * 全部本地视频素材清单
+ * 每个视频包含：唯一ID、标题、副标题、视频源路径、所属非遗类别
+ * 视频文件存放于 public/videos/，文件名使用英文便于引用
+ */
+const allVideos = [
+  {
+    id: "ceramic-zhiciyisheng",
+    title: "只瓷一生",
+    subtitle: "景德镇手工制瓷技艺纪录片",
+    src: `${base}videos/ceramic-zhiciyisheng.mp4`,
+    category: "ceramic",
+    categoryLabel: "陶瓷",
+  },
+  {
+    id: "embroidery-guangxiu",
+    title: "多彩广绣",
+    subtitle: "人民日报×梁晓曼",
+    src: `${base}videos/embroidery-guangxiu.mp4`,
+    category: "embroidery",
+    categoryLabel: "刺绣",
+  },
+  {
+    id: "embroidery-suxiu",
+    title: "苏绣",
+    subtitle: "中国四大名绣之一",
+    src: `${base}videos/embroidery-suxiu.mp4`,
+    category: "embroidery",
+    categoryLabel: "刺绣",
+  },
+  {
+    id: "woodcarving-jiangxin",
+    title: "匠心",
+    subtitle: "传统木雕的传承人",
+    src: `${base}videos/woodcarving-jiangxin.mp4`,
+    category: "woodcarving",
+    categoryLabel: "木雕",
+  },
+  {
+    id: "woodcarving-muban-nianhua",
+    title: "木版年画",
+    subtitle: "国家级非遗微宣传片",
+    src: `${base}videos/woodcarving-muban-nianhua.mp4`,
+    category: "woodcarving",
+    categoryLabel: "木雕",
+  },
+];
+
+/**
+ * 三大非遗手艺专题数据
+ * 每个专题包含：背景图、渐变色调、介绍文案、关联视频列表
+ * videos 字段为该专题下所有可切换播放的视频数组
+ */
+const crafts = [
+  {
+    id: "ceramic",
+    name: "陶瓷技艺",
+    subtitle: "CERAMIC ART",
+    quote: "泥土有性，窑火无情，匠人有心",
+    desc: "从一团泥土到精美瓷器，历经拉坯、修坯、上釉、烧制数十道工序。千年窑火不息，承载着东方美学的极致追求。",
+    bg: `${base}images/backgrounds/ceramic-bg.png`,
+    // 陶瓷专题渐变：青花蓝调
+    gradient: "linear-gradient(135deg, rgba(30,50,80,0.85) 0%, rgba(20,35,60,0.7) 100%)",
+    accentColor: "#4a90d9",
+    // 陶瓷专题仅1个视频
+    videos: [allVideos[0]],
+  },
+  {
+    id: "embroidery",
+    name: "刺绣工艺",
+    subtitle: "EMBROIDERY",
+    quote: "一针一线，绣出锦绣乾坤",
+    desc: "苏绣的细腻、蜀绣的明丽、湘绣的写实、粤绣的华贵，四大名绣各具风韵。丝线在指尖流转，化作花鸟鱼虫、山川人物。",
+    bg: `${base}images/backgrounds/embroidery-bg.png`,
+    // 刺绣专题渐变：丝线红粉调
+    gradient: "linear-gradient(135deg, rgba(120,40,60,0.85) 0%, rgba(80,25,45,0.7) 100%)",
+    accentColor: "#d94a6a",
+    // 刺绣专题包含广绣、苏绣2个视频，可在播放器中切换
+    videos: [allVideos[1], allVideos[2]],
+  },
+  {
+    id: "woodcarving",
+    name: "木雕技艺",
+    subtitle: "WOODCARVING",
+    quote: "刀尖上的艺术，化木为神奇",
+    desc: "东阳木雕的精雕细琢、徽派木雕的古朴大气、黄杨木雕的圆润温润。一刀一凿之间，赋予木材以生命与灵魂。",
+    bg: `${base}images/backgrounds/woodcarving-bg.png`,
+    // 木雕专题渐变：琥珀木纹调
+    gradient: "linear-gradient(135deg, rgba(100,70,30,0.85) 0%, rgba(60,40,15,0.7) 100%)",
+    accentColor: "#d9a44a",
+    // 木雕专题包含木雕匠心、木版年画2个视频，可在播放器中切换
+    videos: [allVideos[3], allVideos[4]],
+  },
+];
+
+/**
+ * 轮播图配置
+ * CLIP_DURATION: 每个视频切片的播放时长（秒），到时自动切换到下一个视频
+ */
+const CAROUSEL_CLIP_DURATION = 15;
 ---
 
-<Layout title="视频动画">
+<Layout title="视频动画 - 非遗传承">
   <Navigation />
-  <main class="placeholder-main">
-    <div class="container">
-      <h1 class="placeholder-title">视频动画</h1>
-      <p class="placeholder-desc">这里将展示非遗技艺溯源、制作流程与传承人故事视频。</p>
-      <a href={import.meta.env.BASE_URL} class="placeholder-back">← 返回首页</a>
-    </div>
+
+  <main class="animation-main">
+    <!-- ============================================
+         Hero 区域
+         ============================================ -->
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="hero-subtitle reveal" data-delay="0">ANIMATION</p>
+        <h1 class="hero-title reveal" data-delay="200">光影非遗</h1>
+        <p class="hero-desc reveal" data-delay="400">用影像讲述千年技艺的故事</p>
+        <div class="hero-line reveal" data-delay="600"></div>
+      </div>
+      <div class="hero-scroll reveal" data-delay="800">
+        <span>向下探索</span>
+        <div class="scroll-arrow"></div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         视频轮播图区
+         自动循环播放5个视频的切片片段（每个播放约15秒）
+         静音自动播放（浏览器策略要求）
+         ============================================ -->
+    <section class="carousel-section">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-subtitle">SHOWCASE</p>
+          <h2 class="section-title">非遗影像</h2>
+          <div class="section-line"></div>
+        </div>
+
+        <!-- 轮播主体：左侧视频播放区 + 右侧视频列表 -->
+        <div class="carousel-wrapper" data-carousel>
+          <!-- 左侧：视频播放区 -->
+          <div class="carousel-stage">
+            <video
+              class="carousel-video"
+              data-carousel-video
+              muted
+              playsinline
+              preload="metadata"
+            ></video>
+            <!-- 视频遮罩信息层（标题、序号、进度条） -->
+            <div class="carousel-overlay">
+              <div class="carousel-info">
+                <span class="carousel-category" data-carousel-category></span>
+                <h3 class="carousel-title" data-carousel-title></h3>
+                <p class="carousel-subtitle" data-carousel-subtitle></p>
+              </div>
+              <div class="carousel-progress" data-carousel-progress>
+                <div class="carousel-progress-bar" data-carousel-progress-bar></div>
+              </div>
+            </div>
+            <!-- 静音/取消静音切换按钮 -->
+            <button class="carousel-mute-btn" data-carousel-mute aria-label="切换静音">
+              <span class="icon-muted">🔇</span>
+              <span class="icon-sound" style="display:none;">🔊</span>
+            </button>
+          </div>
+
+          <!-- 右侧：视频选集列表（可点击切换） -->
+          <div class="carousel-list" data-carousel-list>
+            {allVideos.map((video, index) => (
+              <button
+                class="carousel-item"
+                data-carousel-item={index}
+                data-video-src={video.src}
+                data-video-title={video.title}
+                data-video-subtitle={video.subtitle}
+                data-video-category={video.categoryLabel}
+              >
+                <span class="carousel-item-index">{String(index + 1).padStart(2, "0")}</span>
+                <div class="carousel-item-info">
+                  <span class="carousel-item-tag">{video.categoryLabel}</span>
+                  <span class="carousel-item-title">{video.title}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================
+         三大非遗手艺专题区
+         每个专题：背景图 banner（水波纹交互）+ 介绍 + 自定义播放器
+         ============================================ -->
+    {crafts.map((craft, index) => (
+      <section class="craft-section" id={`craft-${craft.id}`} data-craft={craft.id}>
+        <!-- 背景图 banner 区（水波纹交互） -->
+        <div
+          class="craft-banner"
+          data-ripple
+          style={`background-image: url('${craft.bg}');`}
+        >
+          <!-- 渐变遮罩层 -->
+          <div class="craft-banner-overlay" style={`background: ${craft.gradient};`}></div>
+          <!-- 水波纹 canvas 层 -->
+          <canvas class="ripple-canvas" aria-hidden="true"></canvas>
+          <!-- banner 文字内容 -->
+          <div class="craft-banner-content">
+            <p class="craft-subtitle">{craft.subtitle}</p>
+            <h2 class="craft-name">{craft.name}</h2>
+            <p class="craft-quote">「 {craft.quote} 」</p>
+          </div>
+          <!-- 序号标记 -->
+          <span class="craft-index">0{index + 1}</span>
+        </div>
+
+        <!-- 手艺介绍 + 自定义播放器区 -->
+        <div class="craft-body">
+          <div class="container">
+            <div class="craft-layout">
+              <!-- 介绍文字 -->
+              <div class="craft-intro">
+                <div class="craft-intro-line" style={`background: ${craft.accentColor};`}></div>
+                <h3 class="craft-intro-title">工艺简介</h3>
+                <p class="craft-intro-text">{craft.desc}</p>
+                <a href={`${base}crafts/${craft.id}`} class="craft-link" style={`--accent: ${craft.accentColor};`}>
+                  了解更多 →
+                </a>
+              </div>
+
+              <!-- 自定义视频播放器 + B站风格选集列表 -->
+              <div class="craft-player-zone">
+                {/* 播放器容器：data-craft-player 关联专题ID，用于JS初始化 */}
+                <div class="custom-player" data-craft-player={craft.id} data-accent={craft.accentColor}>
+                  {/* 视频画面区 */}
+                  <div class="player-stage">
+                    <video
+                      class="player-video"
+                      data-player-video
+                      preload="metadata"
+                      playsinline
+                    ></video>
+
+                    {/* 播放器中央大播放按钮（暂停态显示） */}
+                    <button class="player-big-play" data-player-big-play aria-label="播放">
+                      <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </button>
+
+                    {/* 加载提示 */}
+                    <div class="player-loading" data-player-loading>加载中…</div>
+
+                    {/* 自定义控制条 */}
+                    <div class="player-controls" data-player-controls>
+                      {/* 进度条区域 */}
+                      <div class="player-progress" data-player-progress>
+                        <div class="player-progress-buffer" data-player-buffer></div>
+                        <div class="player-progress-filled" data-player-filled></div>
+                        <div class="player-progress-thumb" data-player-thumb></div>
+                      </div>
+
+                      {/* 控制按钮组 */}
+                      <div class="player-buttons">
+                        {/* 播放/暂停 */}
+                        <button class="player-btn" data-player-play aria-label="播放/暂停">
+                          <svg class="icon-play" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                          <svg class="icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:none;">
+                            <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                          </svg>
+                        </button>
+
+                        {/* 时间显示 */}
+                        <span class="player-time" data-player-time>00:00 / 00:00</span>
+
+                        {/* 音量控制 */}
+                        <div class="player-volume">
+                          <button class="player-btn" data-player-mute aria-label="静音切换">
+                            <svg class="icon-sound" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.06A4.5 4.5 0 0016.5 12zM14 3.23v2.06A7 7 0 0119 12a7 7 0 01-5 6.71v2.06A9 9 0 0021 12a9 9 0 00-7-8.77z" />
+                            </svg>
+                            <svg class="icon-muted" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:none;">
+                              <path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.8 8.8 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+                            </svg>
+                          </button>
+                          <input
+                            type="range"
+                            class="player-volume-slider"
+                            data-player-volume
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value="1"
+                            aria-label="音量"
+                          />
+                        </div>
+
+                        {/* 全屏按钮 */}
+                        <button class="player-btn player-btn-right" data-player-fullscreen aria-label="全屏">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* B站风格视频选集列表 */}
+                  <div class="player-playlist" data-player-playlist>
+                    <div class="playlist-header">
+                      <span class="playlist-title">选集（{craft.videos.length}）</span>
+                      <span class="playlist-hint">点击切换</span>
+                    </div>
+                    <div class="playlist-items">
+                      {craft.videos.map((video, vIndex) => (
+                        <button
+                          class:list={["playlist-item", { active: vIndex === 0 }]}
+                          data-playlist-item={vIndex}
+                          data-video-src={video.src}
+                          data-video-title={video.title}
+                          data-video-subtitle={video.subtitle}
+                        >
+                          <span class="playlist-item-index">P{vIndex + 1}</span>
+                          <div class="playlist-item-info">
+                            <span class="playlist-item-title">{video.title}</span>
+                            <span class="playlist-item-sub">{video.subtitle}</span>
+                          </div>
+                          <span class="playlist-item-playing">▶ 播放中</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <!-- 底部引导 -->
+    <section class="bottom-cta">
+      <div class="container">
+        <p class="cta-text">想亲身体验非遗技艺？</p>
+        <a href={`${base}game`} class="cta-btn">前往互动游戏 →</a>
+      </div>
+    </section>
   </main>
+
   <Footer />
 </Layout>
 
 <style>
-  .placeholder-main {
-    min-height: 60vh;
+  /* ============================================
+   * 主容器
+   * ============================================ */
+  .animation-main {
+    padding-top: var(--nav-height);
+    background: var(--color-bg-dark);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============================================
+   * Hero 区域
+   * ============================================ */
+  .hero {
+    position: relative;
+    height: 75vh;
+    min-height: 520px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: var(--nav-height);
     text-align: center;
   }
 
-  .placeholder-title {
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    /* Hero 渐变背景：深色多段渐变 */
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 30%, #2d1f3a 70%, #1a1a2e 100%);
+    z-index: 1;
+  }
+
+  .hero-bg::before {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(196, 163, 90, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatGlow 8s ease-in-out infinite;
+  }
+
+  .hero-bg::after {
+    content: "";
+    position: absolute;
+    bottom: 10%;
+    right: 15%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(178, 34, 34, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: floatGlow 10s ease-in-out infinite reverse;
+  }
+
+  @keyframes floatGlow {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+    50% { transform: translate(40px, -30px) scale(1.1); opacity: 1; }
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(15, 15, 26, 0.4) 100%);
+    z-index: 2;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 3;
+    color: var(--color-text-light);
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    letter-spacing: 0.5em;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.8;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    font-weight: 400;
+    color: var(--color-text-light);
+    /* 标题渐变文字 */
+    background: linear-gradient(135deg, #f5f0e8 0%, #c4a35a 50%, #f5f0e8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 30px rgba(196, 163, 90, 0.3);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: 0.1em;
+  }
+
+  .hero-desc {
     font-family: var(--font-heading);
-    font-size: 2.5rem;
-    color: var(--color-primary);
+    font-size: 1.25rem;
+    color: rgba(245, 240, 232, 0.8);
+    margin-bottom: var(--spacing-lg);
+    letter-spacing: 0.2em;
+  }
+
+  .hero-line {
+    width: 60px;
+    height: 2px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
+    animation: lineExpand 2s ease-in-out infinite;
+  }
+
+  @keyframes lineExpand {
+    0%, 100% { width: 60px; opacity: 0.6; }
+    50% { width: 120px; opacity: 1; }
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    color: rgba(245, 240, 232, 0.6);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+  }
+
+  .scroll-arrow {
+    width: 1px;
+    height: 40px;
+    margin: 12px auto 0;
+    background: linear-gradient(to bottom, var(--color-secondary), transparent);
+    position: relative;
+    animation: scrollDown 2s ease-in-out infinite;
+  }
+
+  .scroll-arrow::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid var(--color-secondary);
+    border-bottom: 1px solid var(--color-secondary);
+  }
+
+  @keyframes scrollDown {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  /* ============================================
+   * 通用区块标题
+   * ============================================ */
+  .section-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .section-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    letter-spacing: 0.5em;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: 0.1em;
+  }
+
+  .section-line {
+    width: 60px;
+    height: 2px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
+  }
+
+  /* ============================================
+   * 视频轮播图区
+   * ============================================ */
+  .carousel-section {
+    padding: var(--spacing-2xl) 0;
+    background: var(--color-bg-dark);
+  }
+
+  .carousel-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* 左侧视频播放区 */
+  .carousel-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(196, 163, 90, 0.2);
+  }
+
+  .carousel-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 视频遮罩信息层 */
+  .carousel-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: var(--spacing-lg);
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.8) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .carousel-info {
     margin-bottom: var(--spacing-md);
   }
 
-  .placeholder-desc {
-    color: var(--color-text-secondary);
+  .carousel-category {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--color-secondary);
+    padding: 2px 10px;
+    border: 1px solid rgba(196, 163, 90, 0.4);
+    border-radius: var(--radius-pill);
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: 0.1em;
+  }
+
+  .carousel-title {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    color: var(--color-text-light);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .carousel-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(245, 240, 232, 0.7);
+    letter-spacing: 0.05em;
+  }
+
+  /* 轮播进度条 */
+  .carousel-progress {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .carousel-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--color-secondary), var(--color-primary));
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+
+  /* 静音切换按钮 */
+  .carousel-mute-btn {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(245, 240, 232, 0.2);
+    color: var(--color-text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    z-index: 3;
+  }
+
+  .carousel-mute-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    border-color: var(--color-secondary);
+  }
+
+  /* 右侧视频列表 */
+  .carousel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .carousel-list::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .carousel-list::-webkit-scrollbar-thumb {
+    background: rgba(196, 163, 90, 0.3);
+    border-radius: 2px;
+  }
+
+  .carousel-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(45, 45, 68, 0.5);
+    border: 1px solid rgba(196, 163, 90, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-light);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s ease;
+  }
+
+  .carousel-item:hover {
+    background: rgba(45, 45, 68, 0.8);
+    border-color: rgba(196, 163, 90, 0.3);
+  }
+
+  /* 当前播放项高亮 */
+  .carousel-item.active {
+    background: linear-gradient(135deg, rgba(196, 163, 90, 0.2), rgba(139, 69, 19, 0.2));
+    border-color: var(--color-secondary);
+  }
+
+  .carousel-item-index {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-secondary);
+    min-width: 28px;
+    font-weight: 700;
+  }
+
+  .carousel-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .carousel-item-tag {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: rgba(196, 163, 90, 0.8);
+    letter-spacing: 0.1em;
+  }
+
+  .carousel-item-title {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 轮播图响应式：移动端列表横向滚动 */
+  @media (max-width: 900px) {
+    .carousel-wrapper {
+      grid-template-columns: 1fr;
+    }
+    .carousel-list {
+      flex-direction: row;
+      overflow-x: auto;
+      max-height: none;
+    }
+    .carousel-item {
+      min-width: 200px;
+    }
+  }
+
+  /* ============================================
+   * 三大非遗手艺专题区
+   * ============================================ */
+  .craft-section {
+    position: relative;
+  }
+
+  /* 背景图 banner 区（水波纹交互容器） */
+  .craft-banner {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+    min-height: 380px;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: crosshair;
+  }
+
+  /* 移动端关闭 fixed 避免性能问题 */
+  @media (max-width: 768px) {
+    .craft-banner {
+      background-attachment: scroll;
+      height: 40vh;
+      min-height: 300px;
+    }
+  }
+
+  .craft-banner-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .ripple-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .craft-banner-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    color: var(--color-text-light);
+    padding: 0 var(--spacing-lg);
+  }
+
+  .craft-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    letter-spacing: 0.5em;
+    color: rgba(245, 240, 232, 0.7);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .craft-name {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400;
+    color: var(--color-text-light);
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: 0.15em;
+  }
+
+  .craft-quote {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    color: rgba(245, 240, 232, 0.85);
+    letter-spacing: 0.1em;
+    font-style: italic;
+  }
+
+  .craft-index {
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-2xl);
+    z-index: 3;
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 700;
+    color: rgba(245, 240, 232, 0.1);
+    line-height: 1;
+  }
+
+  /* ============================================
+   * 手艺介绍 + 播放器区
+   * ============================================ */
+  .craft-body {
+    padding: var(--spacing-2xl) 0;
+    background: var(--color-bg-dark);
+  }
+
+  /* 上下布局：介绍文字在上，播放器在下占满宽度（放大视频画面） */
+  .craft-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+    align-items: stretch;
+  }
+
+  /* 介绍文字区：限宽居中，保证长文可读性 */
+  .craft-intro {
+    position: relative;
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* 装饰短线居中 */
+  .craft-intro-line {
+    width: 40px;
+    height: 3px;
+    margin: 0 auto var(--spacing-md);
+    border-radius: var(--radius-sm);
+  }
+
+  .craft-intro-title {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: 0.1em;
+  }
+
+  .craft-intro-text {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: rgba(245, 240, 232, 0.7);
+    line-height: 2;
     margin-bottom: var(--spacing-lg);
   }
 
-  .placeholder-back {
-    color: var(--color-accent);
-    font-weight: 700;
-    transition: color 0.3s ease;
+  .craft-link {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--accent, var(--color-secondary));
+    border-bottom: 1px solid var(--accent, var(--color-secondary));
+    padding-bottom: 2px;
+    transition: all 0.3s ease;
+    letter-spacing: 0.05em;
   }
 
-  .placeholder-back:hover {
-    color: var(--color-primary);
+  .craft-link:hover {
+    transform: translateY(-2px);
+    opacity: 0.8;
+  }
+
+  /* ============================================
+   * 自定义视频播放器 + 选集列表
+   * ============================================ */
+  .craft-player-zone {
+    position: relative;
+  }
+
+  .custom-player {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 0;
+    background: #0a0a14;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(196, 163, 90, 0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  /* 播放器主区域（左侧视频+控件） */
+  .player-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .player-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* 中央大播放按钮（暂停态显示） */
+  .player-big-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(245, 240, 232, 0.3);
+    color: var(--color-text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 3;
+  }
+
+  .player-big-play:hover {
+    background: rgba(196, 163, 90, 0.3);
+    border-color: var(--color-secondary);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .player-big-play svg {
+    margin-left: 4px;
+  }
+
+  /* 加载提示 */
+  .player-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: rgba(245, 240, 232, 0.6);
+    z-index: 2;
+    display: none;
+  }
+
+  .player-loading.show {
+    display: block;
+  }
+
+  /* 自定义控制条 */
+  .player-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
+    z-index: 4;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  /* 进度条 */
+  .player-progress {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    cursor: pointer;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .player-progress-buffer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+  }
+
+  .player-progress-filled {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--accent, var(--color-secondary));
+    border-radius: 2px;
+  }
+
+  .player-progress-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent, var(--color-secondary));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .player-progress:hover .player-progress-thumb {
+    opacity: 1;
+  }
+
+  /* 控制按钮组 */
+  .player-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .player-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+  }
+
+  .player-btn:hover {
+    color: var(--color-secondary);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .player-btn-right {
+    margin-left: auto;
+  }
+
+  .player-time {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: rgba(245, 240, 232, 0.8);
+    letter-spacing: 0.05em;
+    min-width: 110px;
+  }
+
+  /* 音量控制 */
+  .player-volume {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .player-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    cursor: pointer;
+  }
+
+  .player-volume-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* B站风格选集列表（右侧） */
+  .player-playlist {
+    background: rgba(20, 20, 35, 0.6);
+    border-left: 1px solid rgba(196, 163, 90, 0.1);
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+  }
+
+  .playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid rgba(196, 163, 90, 0.1);
+  }
+
+  .playlist-title {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    letter-spacing: 0.05em;
+  }
+
+  .playlist-hint {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: rgba(245, 240, 232, 0.4);
+  }
+
+  .playlist-items {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: var(--spacing-xs);
+  }
+
+  .playlist-items::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .playlist-items::-webkit-scrollbar-thumb {
+    background: rgba(196, 163, 90, 0.3);
+    border-radius: 2px;
+  }
+
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: rgba(245, 240, 232, 0.7);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .playlist-item:hover {
+    background: rgba(196, 163, 90, 0.1);
+    color: var(--color-text-light);
+  }
+
+  /* 当前播放项高亮 */
+  .playlist-item.active {
+    background: linear-gradient(135deg, rgba(196, 163, 90, 0.15), rgba(139, 69, 19, 0.15));
+    color: var(--color-secondary);
+  }
+
+  .playlist-item-index {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: rgba(196, 163, 90, 0.7);
+    min-width: 24px;
+    font-weight: 600;
+  }
+
+  .playlist-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .playlist-item-title {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .playlist-item-sub {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: rgba(245, 240, 232, 0.4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 播放中标记（仅当前项显示） */
+  .playlist-item-playing {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: var(--color-secondary);
+    display: none;
+  }
+
+  .playlist-item.active .playlist-item-playing {
+    display: block;
+  }
+
+  /* 播放器响应式：移动端选集列表横向滚动 */
+  @media (max-width: 768px) {
+    .custom-player {
+      grid-template-columns: 1fr;
+    }
+    .player-playlist {
+      border-left: none;
+      border-top: 1px solid rgba(196, 163, 90, 0.1);
+    }
+    .playlist-items {
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: var(--spacing-sm);
+    }
+    .playlist-item {
+      min-width: 180px;
+    }
+  }
+
+  /* ============================================
+   * 底部引导
+   * ============================================ */
+  .bottom-cta {
+    padding: var(--spacing-3xl) 0;
+    text-align: center;
+    background: linear-gradient(180deg, var(--color-bg-dark) 0%, #0f0f1a 100%);
+  }
+
+  .cta-text {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: rgba(245, 240, 232, 0.8);
+    margin-bottom: var(--spacing-lg);
+    letter-spacing: 0.1em;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+    padding: var(--spacing-md) var(--spacing-2xl);
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    transition: all 0.3s ease;
+    letter-spacing: 0.1em;
+    box-shadow: 0 8px 30px rgba(196, 163, 90, 0.3);
+  }
+
+  .cta-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(196, 163, 90, 0.5);
+  }
+
+  /* ============================================
+   * 进场动画
+   * ============================================ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: revealFade 0.8s ease forwards;
+  }
+
+  .reveal[data-delay="0"] { animation-delay: 0s; }
+  .reveal[data-delay="200"] { animation-delay: 0.2s; }
+  .reveal[data-delay="400"] { animation-delay: 0.4s; }
+  .reveal[data-delay="600"] { animation-delay: 0.6s; }
+  .reveal[data-delay="800"] { animation-delay: 0.8s; }
+
+  @keyframes revealFade {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
+
+<script>
+  /**
+   * 视频页交互逻辑
+   * 三大模块：
+   *   1. 背景图水波纹涟漪效果（canvas绘制扩散圆环）
+   *   2. 顶部轮播图：自动循环播放视频片段，支持手动切换与静音控制
+   *   3. 自定义播放器：播放/暂停/进度/音量/全屏 + B站风格选集切换
+   */
+  document.addEventListener("DOMContentLoaded", () => {
+    /* ====================================================
+     * 一、背景图区域水波纹涟漪
+     * 原理：鼠标在 banner 上移动时，记录点位生成扩散圆环
+     *       每个圆环半径递增、透明度递减，形成水波涟漪
+     * ==================================================== */
+    const rippleBanners = document.querySelectorAll<HTMLElement>("[data-ripple]");
+
+    rippleBanners.forEach((banner) => {
+      const canvas = banner.querySelector<HTMLCanvasElement>(".ripple-canvas");
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // 涟漪对象数组
+      const ripples: Array<{
+        x: number;
+        y: number;
+        radius: number;
+        maxRadius: number;
+        opacity: number;
+        color: string;
+      }> = [];
+
+      // 调整 canvas 尺寸匹配容器
+      function resizeCanvas() {
+        const rect = banner.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      // 鼠标移动时生成涟漪（节流：每 80ms 最多生成一个）
+      let lastRippleTime = 0;
+      banner.addEventListener("mousemove", (e) => {
+        const now = Date.now();
+        if (now - lastRippleTime < 80) return;
+        lastRippleTime = now;
+
+        const rect = banner.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        ripples.push({
+          x,
+          y,
+          radius: 0,
+          maxRadius: 120 + Math.random() * 60,
+          opacity: 0.6,
+          color: "rgba(245, 240, 232, 0.8)",
+        });
+
+        // 限制涟漪数量，避免性能问题
+        if (ripples.length > 15) ripples.shift();
+      });
+
+      // 点击时生成更强的涟漪
+      banner.addEventListener("click", (e) => {
+        const rect = banner.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        ripples.push({
+          x,
+          y,
+          radius: 0,
+          maxRadius: 200,
+          opacity: 0.9,
+          color: "rgba(245, 240, 232, 1)",
+        });
+      });
+
+      // 动画循环：绘制并更新所有涟漪
+      function animateRipples() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const r = ripples[i];
+          r.radius += 2.5;
+          r.opacity -= 0.012;
+
+          if (r.opacity <= 0 || r.radius >= r.maxRadius) {
+            ripples.splice(i, 1);
+            continue;
+          }
+
+          // 绘制涟漪圆环
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = r.color.replace(/[\d.]+\)$/g, `${r.opacity})`);
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // 内圈淡色填充，增强水波感
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, r.radius * 0.6, 0, Math.PI * 2);
+          ctx.strokeStyle = r.color.replace(/[\d.]+\)$/g, `${r.opacity * 0.4})`);
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        requestAnimationFrame(animateRipples);
+      }
+      animateRipples();
+    });
+
+    /* ====================================================
+     * 二、顶部视频轮播图
+     * 功能：自动循环播放5个视频的片段，每个播放CLIP_DURATION秒后切换
+     *       支持手动点击切换、静音/取消静音
+     * 注意：自动播放需muted（浏览器策略要求）
+     * ==================================================== */
+    const carousel = document.querySelector<HTMLElement>("[data-carousel]");
+    if (carousel) {
+      const carouselVideo = carousel.querySelector<HTMLVideoElement>("[data-carousel-video]");
+      const carouselItems = carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-item]");
+      const titleEl = carousel.querySelector<HTMLElement>("[data-carousel-title]");
+      const subtitleEl = carousel.querySelector<HTMLElement>("[data-carousel-subtitle]");
+      const categoryEl = carousel.querySelector<HTMLElement>("[data-carousel-category]");
+      const progressBar = carousel.querySelector<HTMLElement>("[data-carousel-progress-bar]");
+      const muteBtn = carousel.querySelector<HTMLButtonElement>("[data-carousel-mute]");
+      const iconMuted = muteBtn?.querySelector<HTMLElement>(".icon-muted");
+      const iconSound = muteBtn?.querySelector<HTMLElement>(".icon-sound");
+
+      // 每个视频片段的播放时长（秒），到时自动切换
+      const CLIP_DURATION = 15;
+
+      let currentIndex = 0;
+      // 进度定时器引用，切换时需清除
+      let progressTimer: number | null = null;
+      // 视频是否就绪标记，防止canplay重复触发计时器
+      let isVideoReady = false;
+
+      /**
+       * 切换到指定索引的视频
+       * 仅设置视频源与UI状态，不立即启动计时器
+       * 计时器在视频canplay事件（可播放）后启动，确保大文件也能完整播放CLIP_DURATION秒
+       * @param index 视频在轮播列表中的索引
+       */
+      function switchVideo(index: number) {
+        if (!carouselVideo) return;
+        const item = carouselItems[index];
+        if (!item) return;
+
+        currentIndex = index;
+        // 重置就绪标记，等待新视频canplay
+        isVideoReady = false;
+
+        // 清除上一个视频的计时器
+        if (progressTimer !== null) {
+          window.clearInterval(progressTimer);
+          progressTimer = null;
+        }
+
+        // 更新视频源
+        const src = item.dataset.videoSrc || "";
+        carouselVideo.src = src;
+        // 静音自动播放（浏览器策略要求muted才能自动播放）
+        carouselVideo.play().catch(() => {
+          // 自动播放失败时忽略（用户未交互时浏览器可能阻止）
+        });
+
+        // 更新标题信息
+        if (titleEl) titleEl.textContent = item.dataset.videoTitle || "";
+        if (subtitleEl) subtitleEl.textContent = item.dataset.videoSubtitle || "";
+        if (categoryEl) categoryEl.textContent = item.dataset.videoCategory || "";
+
+        // 更新列表项高亮状态
+        carouselItems.forEach((el, i) => {
+          el.classList.toggle("active", i === index);
+        });
+
+        // 重置进度条
+        if (progressBar) progressBar.style.width = "0%";
+      }
+
+      /**
+       * 启动进度条定时器
+       * 每100ms更新一次进度条宽度，达到CLIP_DURATION后切换到下一个视频
+       * 仅在视频canplay后调用，确保视频能完整播放CLIP_DURATION秒
+       */
+      function startProgressTimer() {
+        if (progressTimer !== null) {
+          window.clearInterval(progressTimer);
+        }
+        let elapsed = 0;
+        progressTimer = window.setInterval(() => {
+          elapsed += 0.1;
+          const percent = Math.min((elapsed / CLIP_DURATION) * 100, 100);
+          if (progressBar) progressBar.style.width = `${percent}%`;
+
+          // 达到切片时长，切换到下一个视频（循环）
+          if (elapsed >= CLIP_DURATION) {
+            const nextIndex = (currentIndex + 1) % carouselItems.length;
+            switchVideo(nextIndex);
+          }
+        }, 100);
+      }
+
+      // 列表项点击：手动切换到指定视频
+      carouselItems.forEach((item, index) => {
+        item.addEventListener("click", () => {
+          switchVideo(index);
+        });
+      });
+
+      // 静音切换按钮
+      muteBtn?.addEventListener("click", () => {
+        if (!carouselVideo) return;
+        carouselVideo.muted = !carouselVideo.muted;
+        if (iconMuted && iconSound) {
+          iconMuted.style.display = carouselVideo.muted ? "inline" : "none";
+          iconSound.style.display = carouselVideo.muted ? "none" : "inline";
+        }
+      });
+
+      /**
+       * 视频可播放事件：视频加载足够数据后触发
+       * 在此事件后启动15秒计时器，确保大文件也能完整播放CLIP_DURATION秒
+       * 通过isVideoReady标记防止重复启动
+       */
+      carouselVideo?.addEventListener("canplay", () => {
+        if (!isVideoReady) {
+          isVideoReady = true;
+          startProgressTimer();
+        }
+      });
+
+      /**
+       * 视频加载失败处理：自动切换到下一个视频，避免轮播卡死
+       */
+      carouselVideo?.addEventListener("error", () => {
+        const nextIndex = (currentIndex + 1) % carouselItems.length;
+        switchVideo(nextIndex);
+      });
+
+      // 初始化：加载第一个视频
+      switchVideo(0);
+    }
+
+    /* ====================================================
+     * 三、自定义视频播放器（三大专题通用）
+     * 功能：播放/暂停、进度条拖拽、音量、全屏、选集切换
+     * 每个专题独立初始化一个播放器实例
+     * ==================================================== */
+    const players = document.querySelectorAll<HTMLElement>("[data-craft-player]");
+
+    players.forEach((player) => {
+      const video = player.querySelector<HTMLVideoElement>("[data-player-video]");
+      const bigPlayBtn = player.querySelector<HTMLButtonElement>("[data-player-big-play]");
+      const playBtn = player.querySelector<HTMLButtonElement>("[data-player-play]");
+      const muteToggleBtn = player.querySelector<HTMLButtonElement>("[data-player-mute]");
+      const fullscreenBtn = player.querySelector<HTMLButtonElement>("[data-player-fullscreen]");
+      const progress = player.querySelector<HTMLElement>("[data-player-progress]");
+      const filled = player.querySelector<HTMLElement>("[data-player-filled]");
+      const buffer = player.querySelector<HTMLElement>("[data-player-buffer]");
+      const thumb = player.querySelector<HTMLElement>("[data-player-thumb]");
+      const timeEl = player.querySelector<HTMLElement>("[data-player-time]");
+      const volumeSlider = player.querySelector<HTMLInputElement>("[data-player-volume]");
+      const loading = player.querySelector<HTMLElement>("[data-player-loading]");
+      const playlistItems = player.querySelectorAll<HTMLButtonElement>("[data-playlist-item]");
+      const accentColor = player.dataset.accent || "#c4a35a";
+
+      // 设置进度条填充颜色为主题色
+      if (filled) filled.style.background = accentColor;
+      if (thumb) thumb.style.background = accentColor;
+
+      if (!video) return;
+
+      /**
+       * 时间格式化：秒数转 mm:ss 格式
+       * @param seconds 秒数
+       * @returns 格式化后的时间字符串
+       */
+      function formatTime(seconds: number): string {
+        if (isNaN(seconds) || !isFinite(seconds)) return "00:00";
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+
+      /**
+       * 更新播放/暂停按钮图标显示
+       */
+      function updatePlayIcon() {
+        if (!playBtn) return;
+        const iconPlay = playBtn.querySelector<HTMLElement>(".icon-play");
+        const iconPause = playBtn.querySelector<HTMLElement>(".icon-pause");
+        if (iconPlay && iconPause) {
+          iconPlay.style.display = video.paused ? "inline" : "none";
+          iconPause.style.display = video.paused ? "none" : "inline";
+        }
+        // 大播放按钮在暂停态显示
+        if (bigPlayBtn) {
+          bigPlayBtn.style.display = video.paused ? "flex" : "none";
+        }
+      }
+
+      /**
+       * 切换播放/暂停状态
+       * 若视频源未加载，先加载第一个选集视频并自动播放
+       */
+      function togglePlay() {
+        // 视频源未加载时，先触发延迟加载
+        if (!videoLoaded) {
+          loadFirstVideo();
+          return;
+        }
+        if (video.paused) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }
+
+      // 播放/暂停按钮点击
+      playBtn?.addEventListener("click", togglePlay);
+      bigPlayBtn?.addEventListener("click", togglePlay);
+
+      // 视频点击切换播放/暂停
+      video.addEventListener("click", togglePlay);
+
+      // 播放状态变化时更新图标
+      video.addEventListener("play", updatePlayIcon);
+      video.addEventListener("pause", updatePlayIcon);
+
+      // 加载中显示提示
+      video.addEventListener("waiting", () => {
+        loading?.classList.add("show");
+      });
+      video.addEventListener("playing", () => {
+        loading?.classList.remove("show");
+      });
+
+      /**
+       * 更新进度条位置
+       * @param clientX 鼠标X坐标（用于点击/拖拽跳转）
+       */
+      function updateProgress(clientX: number) {
+        if (!progress) return;
+        const rect = progress.getBoundingClientRect();
+        // 计算点击位置占比，限制在0~1之间
+        let percent = (clientX - rect.left) / rect.width;
+        percent = Math.max(0, Math.min(1, percent));
+        // 更新进度条视觉
+        if (filled) filled.style.width = `${percent * 100}%`;
+        if (thumb) thumb.style.left = `${percent * 100}%`;
+        // 跳转视频播放位置
+        if (video.duration) {
+          video.currentTime = percent * video.duration;
+        }
+      }
+
+      // 进度条点击跳转
+      progress?.addEventListener("click", (e) => {
+        updateProgress(e.clientX);
+      });
+
+      // 进度条拖拽跳转
+      let isDragging = false;
+      progress?.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        updateProgress(e.clientX);
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (isDragging) updateProgress(e.clientX);
+      });
+      document.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      // 视频时间更新：同步进度条与时间显示
+      video.addEventListener("timeupdate", () => {
+        if (!video.duration) return;
+        const percent = (video.currentTime / video.duration) * 100;
+        if (filled) filled.style.width = `${percent}%`;
+        if (thumb) thumb.style.left = `${percent}%`;
+        if (timeEl) {
+          timeEl.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+        }
+      });
+
+      // 缓冲进度更新
+      video.addEventListener("progress", () => {
+        if (video.buffered.length > 0 && video.duration) {
+          const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+          const percent = (bufferedEnd / video.duration) * 100;
+          if (buffer) buffer.style.width = `${percent}%`;
+        }
+      });
+
+      // 音量滑块控制
+      volumeSlider?.addEventListener("input", (e) => {
+        const target = e.target as HTMLInputElement;
+        const vol = parseFloat(target.value);
+        video.volume = vol;
+        video.muted = vol === 0;
+        updateMuteIcon();
+      });
+
+      /**
+       * 更新静音按钮图标显示
+       */
+      function updateMuteIcon() {
+        if (!muteToggleBtn) return;
+        const iconSound = muteToggleBtn.querySelector<HTMLElement>(".icon-sound");
+        const iconMuted = muteToggleBtn.querySelector<HTMLElement>(".icon-muted");
+        if (iconSound && iconMuted) {
+          iconSound.style.display = video.muted ? "none" : "inline";
+          iconMuted.style.display = video.muted ? "inline" : "none";
+        }
+      }
+
+      // 静音切换按钮
+      muteToggleBtn?.addEventListener("click", () => {
+        video.muted = !video.muted;
+        if (volumeSlider) {
+          volumeSlider.value = video.muted ? "0" : String(video.volume);
+        }
+        updateMuteIcon();
+      });
+
+      // 全屏切换
+      fullscreenBtn?.addEventListener("click", () => {
+        const stage = player.querySelector<HTMLElement>(".player-stage");
+        if (!stage) return;
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          stage.requestFullscreen().catch(() => {});
+        }
+      });
+
+      // 监听全屏变化，调整视频尺寸
+      document.addEventListener("fullscreenchange", () => {
+        if (document.fullscreenElement) {
+          video.style.height = "100%";
+          video.style.objectFit = "contain";
+        } else {
+          video.style.height = "";
+          video.style.objectFit = "";
+        }
+      });
+
+      /**
+       * 切换播放器视频源（选集切换）
+       * @param src 视频源地址
+       * @param activeItem 当前选中的选集按钮元素
+       */
+      function switchPlaylistVideo(src: string, activeItem: HTMLButtonElement) {
+        if (!src) return;
+        // 标记视频已加载，防止延迟加载覆盖手动切换的视频源
+        videoLoaded = true;
+        // 显示加载提示
+        loading?.classList.add("show");
+        // 更新视频源
+        video.src = src;
+        video.load();
+        // 自动播放新视频
+        video.play().catch(() => {
+          // 自动播放被阻止时，等待用户点击
+          loading?.classList.remove("show");
+        });
+
+        // 更新选集列表高亮状态
+        playlistItems.forEach((el) => {
+          el.classList.remove("active");
+        });
+        activeItem.classList.add("active");
+      }
+
+      // 选集列表项点击切换
+      playlistItems.forEach((item) => {
+        item.addEventListener("click", () => {
+          const src = item.dataset.videoSrc || "";
+          switchPlaylistVideo(src, item);
+        });
+      });
+
+      /**
+       * 延迟加载逻辑
+       * 视频源加载状态标记，防止重复加载
+       * 仅在用户点击播放按钮或选集时才加载视频，避免页面加载时并发请求多个大文件
+       */
+      let videoLoaded = false;
+
+      /**
+       * 加载第一个选集视频（延迟触发）
+       * 用户点击播放按钮时调用，加载后自动播放
+       */
+      function loadFirstVideo() {
+        if (videoLoaded) return;
+        videoLoaded = true;
+        if (playlistItems.length > 0) {
+          const firstItem = playlistItems[0];
+          const src = firstItem.dataset.videoSrc || "";
+          if (src) {
+            video.src = src;
+            video.load();
+            // 加载后自动播放
+            video.play().catch(() => {
+              // 自动播放被阻止时，等待用户再次点击
+            });
+          }
+        }
+      }
+
+      // 初始更新图标状态
+      updatePlayIcon();
+      updateMuteIcon();
+    });
+  });
+</script>
